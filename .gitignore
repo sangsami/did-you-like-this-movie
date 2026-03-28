@@ -1,3 +1,5 @@
+__pycache__/
+
 # Distribution / packaging
 .Python
 build/
@@ -18,6 +20,10 @@ share/python-wheels/
 *.egg
 MANIFEST
 
+# Flask stuff:
+instance/
+.webassets-cache
+
 # Unit test / coverage reports
 htmlcov/
 .tox/
@@ -33,11 +39,7 @@ coverage.xml
 .pytest_cache/
 cover/
 
-# UV
-#   Similar to Pipfile.lock, it is generally recommended to include uv.lock in version control.
-#   This is especially recommended for binary packages to ensure reproducibility, and is more
-#   commonly ignored for libraries.
-#uv.lock
+uv.lock
 
 # Environments
 .env
@@ -49,12 +51,6 @@ ENV/
 env.bak/
 venv.bak/
 
-# mypy
-.mypy_cache/
-.dmypy.json
-dmypy.json
-
-# PyCharm
 # Ruff stuff:
 .ruff_cache/
 
