@@ -15,3 +15,37 @@ Instead of long reviews, the app focuses on quick and clear feedback. You can:
 - Users can mark movies as recommended or not recommended  
 - Users can write short reviews (e.g., up to 10 words)  
 - Users can view reviews from other users  
+
+## How to run
+
+This project uses `uv` as package manager, but shouldn't necessarily be needed if ran through `Make` commands
+
+**Create virtual environment:**
+```bash
+make venv
+```
+
+**Install dependencies:**
+```bash
+make install
+```
+
+**Setup database:**
+```bash
+make setup
+```
+
+**Install dependencies:**
+```bash
+make install
+```
+
+**Run app in dev mode:**
+```bash
+make dev
+```
+
+**Run app in prod mode:**
+```bash
+make prod
+```
