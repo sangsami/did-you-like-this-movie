@@ -11,10 +11,8 @@ CREATE TABLE users (
 
 CREATE TABLE movies (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  author_id INTEGER NOT NULL,
   created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  title TEXT NOT NULL,
-  FOREIGN KEY (author_id) REFERENCES users (id)
+  title TEXT UNIQUE NOT NULL
 );
 
 CREATE TABLE reviews (
@@ -26,6 +24,7 @@ CREATE TABLE reviews (
   liked BOOLEAN,
   recommend BOOLEAN,
   FOREIGN KEY (author_id) REFERENCES users (id),
-  FOREIGN KEY (movie_id) REFERENCES movies (id)
+  FOREIGN KEY (movie_id) REFERENCES movies (id),
+  UNIQUE(author_id, movie_id)
 );
 
