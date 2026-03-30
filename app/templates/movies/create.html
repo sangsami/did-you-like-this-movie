@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>New Review</h1>
+{% endblock %}
+
+{% block content %}
+
+<form method="post">
+  <label for="title">Movie</label>
+  <div style="position: relative;">
+    <input 
+      name="title" 
+      id="title" 
+      autocomplete="off"
+      placeholder="Search for a movie..."
+      required
+    >
+    <ul id="results"></ul>
+  </div>
+
+  <input type="hidden" name="movie_id" id="movie_id">
+
+  <ul id="results"></ul>
+
+  <label>Did you like it?</label>
+  <input type="radio" name="liked" value="1"> Yes
+  <input type="radio" name="liked" value="0"> No
+  <input type="radio" name="liked" value="" checked> Not sure
+
+  <br>
+
+  <label>Would you recommend it?</label>
+  <input type="radio" name="recommend" value="1"> Yes
+  <input type="radio" name="recommend" value="0"> No
+  <input type="radio" name="recommend" value="" checked> Not sure
+
+  <br>
+
+  <label for="body">Review</label>
+  <textarea name="body" id="body"></textarea>
+
+  <input type="submit" value="Save">
+</form>
+
+<script>
+  const input = document.getElementById('title');
+  const results = document.getElementById('results');
+  const movieIdInput = document.getElementById('movie_id');
+
+  let searchTimeout = null;
+
+  input.addEventListener('input', () => {
+    const query = input.value.trim();
+    movieIdInput.value = '';
+    if (query.length < 2) {
+      results.innerHTML = '';
+      return;
+    }
+
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(async () => {
+      try {
+
+        const response = await fetch(`{{ url_for('movies.search') }}?q=${encodeURIComponent(query)}`);
+        const data = await response.json();
+
+        results.innerHTML = '';
+
+        data.movies.forEach(movie => {
+          const li = document.createElement('li');
+          li.textContent = movie.title;
+
+          li.addEventListener('click', () => {
+            input.value = movie.title;
+            movieIdInput.value = movie.id;
+            results.innerHTML = '';
+          });
+
+          results.appendChild(li);
+        });
+      } catch (error) {
+        console.error('Search failed:', error);
+      }
+    }, 300);
+  });
+
+
+  document.addEventListener('click', (e) => {
+    if (e.target !== input && e.target !== results) {
+      results.innerHTML = '';
+    }
+  });
+</script>
+{% endblock %}
