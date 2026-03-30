@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>Edit Review</h1>
+{% endblock %}
+
+{% block content %}
+<form method="post">
+  <label for="title">Movie</label>
+  <input 
+    type="text"
+    name="title" 
+    id="title"
+    value="{{ review['title'] }}"
+    required
+  >
+
+  <label for="body">Review</label>
+  <textarea name="body" id="body">{{ review['body'] }}</textarea>
+
+  <label>Did you like it?</label>
+  <input type="radio" name="liked" value="1" {% if review['liked'] %}checked{% endif %}> Yes
+  <input type="radio" name="liked" value="0" {% if review['liked'] is not none and not review['liked'] %}checked{% endif %}> No
+  <input type="radio" name="liked" value="" {% if review['liked'] is none %}checked{% endif %}> Not sure
+
+  <br>
+
+  <label>Would you recommend it?</label>
+  <input type="radio" name="recommend" value="1" {% if review['recommend'] %}checked{% endif %}> Yes
+  <input type="radio" name="recommend" value="0" {% if review['recommend'] is not none and not review['recommend'] %}checked{% endif %}> No
+  <input type="radio" name="recommend" value="" {% if review['recommend'] is none %}checked{% endif %}> Not sure
+
+  <br>
+
+  <input type="submit" value="Update">
+</form>
+{% endblock %}
