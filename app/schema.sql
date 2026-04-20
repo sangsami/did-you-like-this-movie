@@ -20,7 +20,7 @@ CREATE TABLE reviews (
   author_id INTEGER NOT NULL,
   movie_id INTEGER NOT NULL,
   created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  body TEXT CHECK (length(body) <= 10),
+  body TEXT,
   liked BOOLEAN,
   recommend BOOLEAN,
   FOREIGN KEY (author_id) REFERENCES users (id),

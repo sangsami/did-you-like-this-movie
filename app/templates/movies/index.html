@@ -32,7 +32,7 @@
         {% endif %}
       </p>
 
-      <p>Review: {{ review['body'] }}</p>
+      <p class="review-body">Review: {{ review['body'] }}</p>
 
       <a href="{{ url_for('movies.update', review_id=review['id']) }}">Edit</a>
       {% if g.user and review['author_id'] == g.user['id'] %}

@@ -100,3 +100,7 @@ form {
   background: #fee2e2;
   color: #991b1b;
 }
+
+.review-body {
+  white-space: pre-line;
+}
