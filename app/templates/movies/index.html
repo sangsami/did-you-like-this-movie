@@ -2,16 +2,13 @@
 
 {% block header %}
   <h1>{% block title %}Reviews{% endblock %}</h1>
-  {% if g.user %}
-    <a class="action" href="{{ url_for('movies.create') }}">New</a>
-  {% endif %}
 {% endblock %}
 
 {% block content %}
 
-  <div>
+  <div class="review-controls">
 
-    <div>
+    <div class="filters">
       <a href="{{ url_for('movies.index', filter='all') }}"
         class="{{ 'active' if active_filter == 'all' else '' }}">
         All ({{ stats.total }})
@@ -31,11 +28,11 @@
   </div>
 
   {% for review in reviews %}
-    <article>
+    <article class="card">
 
       <h2>{{ review['title'] }}</h2>
 
-      <div>
+      <div class="meta">
         <span>
           Liked:
           {% if review.liked is none %}
@@ -59,11 +56,11 @@
         </span>
       </div>
 
-      <p >
+      <p class="review-body">
         {{ review['body'] }}
       </p>
 
-      <div>
+      <div class="actions">
         <a href="{{ url_for('movies.update', review_id=review['id']) }}">Edit</a>
 
         {% if g.user and review['author_id'] == g.user['id'] %}

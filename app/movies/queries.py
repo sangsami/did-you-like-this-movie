@@ -96,3 +96,58 @@ def search_movies(q):
         'SELECT id, title FROM movies WHERE title LIKE ? LIMIT 10',
         (f'%{q}%',)
     ).fetchall()
+
+
+def set_reaction(user_id, review_id, value):
+    db = get_db()
+    db.execute("""
+        INSERT INTO review_reactions (user_id, review_id, value)
+        VALUES (?, ?, ?)
+        ON CONFLICT(user_id, review_id)
+        DO UPDATE SET value=excluded.value
+    """, (user_id, review_id, value))
+    db.commit()
+
+
+def get_reaction_counts(review_id):
+    db = get_db()
+    return db.execute("""
+        SELECT
+            SUM(CASE WHEN value = 1 THEN 1 ELSE 0 END) AS likes,
+            SUM(CASE WHEN value = -1 THEN 1 ELSE 0 END) AS dislikes
+        FROM review_reactions
+        WHERE review_id = ?
+    """, (review_id,)).fetchone()
+
+
+def get_user_reaction(user_id, review_id):
+    db = get_db()
+    row = db.execute("""
+        SELECT value
+        FROM review_reactions
+        WHERE user_id=? AND review_id=?
+    """, (user_id, review_id)).fetchone()
+
+    return row["value"] if row else None
+
+
+def get_all_reviews_except_user(user_id):
+    db = get_db()
+    return db.execute("""
+        SELECT 
+            r.id, r.body, r.liked, r.recommend,
+            r.author_id, m.title, u.username,
+
+            COALESCE(SUM(CASE WHEN rr.value = 1 THEN 1 END), 0) AS likes_count,
+            COALESCE(SUM(CASE WHEN rr.value = -1 THEN 1 END), 0) AS dislikes_count
+
+        FROM reviews r
+        JOIN movies m ON r.movie_id = m.id
+        JOIN users u ON r.author_id = u.id
+        LEFT JOIN review_reactions rr ON rr.review_id = r.id
+
+        WHERE r.author_id != ?
+
+        GROUP BY r.id
+        ORDER BY r.created DESC
+    """, (user_id,)).fetchall()

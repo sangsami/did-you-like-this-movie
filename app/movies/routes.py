@@ -131,3 +131,33 @@ def search():
     movies = queries.search_movies(q)
 
     return {"movies": [dict(m) for m in movies]}
+
+
+@bp.route('/feed')
+@login_required
+def feed():
+    reviews = queries.get_all_reviews_except_user(g.user['id'])
+
+    liked_map = {
+        r['id']: queries.get_user_reaction(g.user['id'], r['id'])
+        for r in reviews
+    }
+
+    return render_template(
+        'movies/feed.html',
+        reviews=reviews,
+        liked_map=liked_map
+    )
+
+@bp.route('/<int:review_id>/like', methods=['POST'])
+@login_required
+def like(review_id):
+    queries.set_reaction(g.user['id'], review_id, 1)
+    return redirect(url_for('movies.feed'))
+
+
+@bp.route('/<int:review_id>/dislike', methods=['POST'])
+@login_required
+def dislike(review_id):
+    queries.set_reaction(g.user['id'], review_id, -1)
+    return redirect(url_for('movies.feed'))

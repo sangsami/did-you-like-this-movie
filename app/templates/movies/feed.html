@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+  <h1>All Reviews</h1>
+
+  {% for review in reviews %}
+    <article class="card">
+
+      <h2>{{ review['title'] }}</h2>
+      <p>by {{ review['username'] }}</p>
+
+      <div class="meta">
+        <span>
+          Liked:
+          {% if review.liked is none %}
+            No answer
+          {% elif review.liked %}
+            Yes
+          {% else %}
+            No
+          {% endif %}
+        </span>
+
+        <span>
+          Recommend:
+          {% if review.recommend is none %}
+            No answer
+          {% elif review.recommend %}
+            Yes
+          {% else %}
+            No
+          {% endif %}
+        </span>
+      </div>
+
+      <p class="review-body">{{ review['body'] }}</p>
+
+      <div class="actions">
+
+        <form method="post"
+              action="{{ url_for('movies.like', review_id=review['id']) }}"
+              style="display:inline;">
+          <button type="submit"
+            {% if liked_map[review['id']] == 1 %}disabled{% endif %}>
+            Like ({{ review['likes_count'] }})
+          </button>
+        </form>
+
+        <form method="post"
+              action="{{ url_for('movies.dislike', review_id=review['id']) }}"
+              style="display:inline;">
+          <button type="submit"
+            {% if liked_map[review['id']] == -1 %}disabled{% endif %}>
+            Dislike ({{ review['dislikes_count'] }})
+          </button>
+        </form>
+
+      </div>
+
+
+    </article>
+  {% endfor %}
+
+{% endblock %}
