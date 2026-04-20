@@ -21,14 +21,14 @@
   <label>Did you like it?</label>
   <input type="radio" name="liked" value="1" {% if review['liked'] %}checked{% endif %}> Yes
   <input type="radio" name="liked" value="0" {% if review['liked'] is not none and not review['liked'] %}checked{% endif %}> No
-  <input type="radio" name="liked" value="" {% if review['liked'] is none %}checked{% endif %}> Not sure
+  <input type="radio" name="liked" value="" {% if review['liked'] is none %}checked{% endif %}> No answer
 
   <br>
 
   <label>Would you recommend it?</label>
   <input type="radio" name="recommend" value="1" {% if review['recommend'] %}checked{% endif %}> Yes
   <input type="radio" name="recommend" value="0" {% if review['recommend'] is not none and not review['recommend'] %}checked{% endif %}> No
-  <input type="radio" name="recommend" value="" {% if review['recommend'] is none %}checked{% endif %}> Not sure
+  <input type="radio" name="recommend" value="" {% if review['recommend'] is none %}checked{% endif %}> No answer
 
   <br>
 
