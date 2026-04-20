@@ -20,6 +20,12 @@ Instead of long reviews, the app focuses on quick and clear feedback. You can:
 
 This project uses `uv` as package manager, but shouldn't necessarily be needed if ran through `Make` commands
 
+If you are running the program from scratch, just run this command from the root of this project (where Makefile is)
+
+```bash
+make clean venv install setup dev
+```
+
 **Create virtual environment:**
 ```bash
 make venv
