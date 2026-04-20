@@ -28,3 +28,10 @@ CREATE TABLE reviews (
   UNIQUE(author_id, movie_id)
 );
 
+CREATE TABLE review_reactions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    review_id INTEGER NOT NULL,
+    value INTEGER NOT NULL,
+    UNIQUE(user_id, review_id)
+);
