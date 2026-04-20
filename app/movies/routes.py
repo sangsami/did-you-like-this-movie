@@ -11,10 +11,30 @@ bp = Blueprint('movies', __name__)
 @bp.route('/')
 @login_required
 def index():
-    reviews = queries.get_reviews_by_user(g.user['id'])
+    filter_type = request.args.get('filter', 'all')
 
-    return render_template('movies/index.html', reviews=reviews)
+    all_reviews = queries.get_reviews_by_user(g.user['id'])
 
+    stats = {
+        "total": len(all_reviews),
+        "liked": sum(1 for r in all_reviews if r['liked'] is True),
+        "unliked": sum(1 for r in all_reviews if r['liked'] is False),
+        "no_answer": sum(1 for r in all_reviews if r['liked'] is None),
+    }
+
+    if filter_type == 'liked':
+        reviews = [r for r in all_reviews if r['liked'] is True]
+    elif filter_type == 'unliked':
+        reviews = [r for r in all_reviews if r['liked'] is False]
+    else:
+        reviews = all_reviews
+
+    return render_template(
+        'movies/index.html',
+        reviews=reviews,
+        stats=stats,
+        active_filter=filter_type
+    )
 
 @bp.route('/create', methods=('GET', 'POST'))
 @login_required
