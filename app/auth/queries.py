@@ -3,7 +3,7 @@ from app.db import get_db
 def get_user_by_id(user_id):
     db = get_db()
     return db.execute(
-        "SELECT * FROM users WHERE id = ?",
+        "SELECT username, password_hash FROM users WHERE id = ?",
         (user_id,)
     ).fetchone()
 
@@ -11,7 +11,7 @@ def get_user_by_id(user_id):
 def get_user_by_username(username):
     db = get_db()
     return db.execute(
-        "SELECT * FROM users WHERE username = ?",
+        "SELECT username, password_hash FROM users WHERE username = ?",
         (username,)
     ).fetchone()
 
