@@ -4,22 +4,14 @@ from flask import (
 from werkzeug.exceptions import abort
 
 from app.auth import login_required
-from app.db import get_db
+from app.movies import queries
 
 bp = Blueprint('movies', __name__)
 
 @bp.route('/')
 @login_required
 def index():
-    db = get_db()
-
-    reviews = db.execute("""
-        SELECT r.id, r.body, r.author_id, r.liked, r.recommend, m.title
-        FROM reviews r
-        JOIN movies m ON r.movie_id = m.id
-        WHERE r.author_id = ?
-        ORDER BY r.created DESC
-    """, (g.user['id'],)).fetchall()
+    reviews = queries.get_reviews_by_user(g.user['id'])
 
     return render_template('movies/index.html', reviews=reviews)
 
@@ -44,41 +36,24 @@ def create():
         if not movie_id:
             movie_id = get_or_create_movie(title)
 
-        db = get_db()
         
-        exists = db.execute(
-            'SELECT id FROM reviews WHERE author_id=? AND movie_id=?',
-            (g.user['id'], movie_id)
-        ).fetchone()
+        exists = queries.review_exists(g.user['id'], movie_id)
 
         if exists:
             flash(f'You already reviewed "{title}".')
             return render_template('movies/create.html')
 
-        db.execute(
-            '''
-            INSERT INTO reviews (author_id, movie_id, body, liked, recommend) 
-            VALUES (?, ?, ?, ?, ?)
-            ''',
-            (g.user['id'], movie_id, body, liked, recommend)
-        )
-        db.commit()
+        queries.insert_review(user_id=g.user['id'], movie_id=movie_id, body=body, liked=liked, recommend=recommend)
         return redirect(url_for('movies.index'))
 
     return render_template('movies/create.html')
 
 
 def get_or_create_movie(title):
-    db = get_db()
-    movie = db.execute(
-        'SELECT id FROM movies WHERE LOWER(title) = LOWER(?)',
-        (title.strip(),)
-    ).fetchone()
+    movie = queries.find_movie_by_title(title)
 
     if movie is None:
-        cursor = db.execute('INSERT INTO movies (title) VALUES (?)', (title.strip(),))
-        db.commit()
-        movie_id = cursor.lastrowid
+        movie_id = queries.create_movie(title=title.strip())
     else:
         movie_id = movie['id']
 
@@ -88,17 +63,7 @@ def get_or_create_movie(title):
 @bp.route('/<int:review_id>/update', methods=('GET', 'POST'))
 @login_required
 def update(review_id):
-    db = get_db()
-    
-    review = db.execute(
-        '''
-        SELECT r.id, r.body, r.movie_id, r.liked, r.recommend, m.title
-        FROM reviews r
-        JOIN movies m ON r.movie_id = m.id
-        WHERE r.id=? AND r.author_id=?
-        ''',
-        (review_id, g.user['id'])
-    ).fetchone()
+    review = queries.get_review(review_id=review_id, user_id=g.user['id'])
 
     if review is None:
         abort(404, "Review not found or you don't have permission.")
@@ -118,15 +83,8 @@ def update(review_id):
 
         movie_id = get_or_create_movie(title)
 
-        db.execute(
-            '''
-            UPDATE reviews
-            SET movie_id=?, body=?, liked=?, recommend=?
-            WHERE id=?
-            ''',
-            (movie_id, body, liked, recommend, review_id)
-        )
-        db.commit()
+        queries.update_review(review_id=review_id, movie_id=movie_id, body=body, liked=liked, recommend=recommend)
+
         flash('Review updated successfully.')
         return redirect(url_for('movies.index'))
 
@@ -136,17 +94,12 @@ def update(review_id):
 @bp.route('/<int:id>/delete', methods=('POST',))
 @login_required
 def delete(id):
-    db = get_db()
-    review = db.execute(
-        'SELECT id FROM reviews WHERE id=? AND author_id=?',
-        (id, g.user['id'])
-    ).fetchone()
+    review = queries.get_review(review_id=id, user_id=g.user['id'])
 
     if review is None:
         abort(404, "Review not found or you don't have permission.")
 
-    db.execute('DELETE FROM reviews WHERE id=?', (id,))
-    db.commit()
+    queries.delete_review(id, g.user['id'])
     return redirect(url_for('movies.index'))
 
 
@@ -154,11 +107,7 @@ def delete(id):
 @login_required
 def search():
     q = request.args.get('q', '')
-    db = get_db()
 
-    movies = db.execute(
-        'SELECT id, title FROM movies WHERE title LIKE ? LIMIT 10',
-        (f'%{q}%',)
-    ).fetchall()
+    movies = queries.search_movies(q)
 
     return {"movies": [dict(m) for m in movies]}

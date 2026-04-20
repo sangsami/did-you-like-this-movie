@@ -18,11 +18,11 @@ def create_app(test_config=None):
     from . import db
     db.init_app(app)
 
-    from . import auth
-    app.register_blueprint(auth.bp)
+    from .auth import bp as auth_bp
+    app.register_blueprint(auth_bp)
 
-    from . import movies
-    app.register_blueprint(movies.bp)
+    from .movies import bp as movies_bp
+    app.register_blueprint(movies_bp)
     app.add_url_rule('/', endpoint='index')
 
     return app

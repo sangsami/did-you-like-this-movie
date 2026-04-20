@@ -1,11 +1,13 @@
 import functools
+import sqlite3
 
 from flask import (
     Blueprint, flash, g, redirect, render_template, request, session, url_for
 )
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from app.db import get_db
+from app.auth import queries
+
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')
 
@@ -16,9 +18,7 @@ def load_logged_in_user():
     if user_id is None:
         g.user = None
     else:
-        g.user = get_db().execute(
-            'SELECT * FROM users WHERE id = ?', (user_id,)
-        ).fetchone()
+        g.user = queries.get_user_by_id(user_id=user_id)
 
 
 @bp.route('/register', methods=('GET', 'POST'))
@@ -27,25 +27,23 @@ def register():
         username = request.form['username']
         password1 = request.form['password1']
         password2 = request.form['password2']
-        
+
         error = None
+
         if not username:
             error = 'Username is required.'
         elif not password1 or not password2:
             error = 'Password is required.'
         elif password1 != password2:
-            error =  "Passwords did not match"
-
-        db = get_db()
+            error = "Passwords did not match"
 
         if error is None:
             try:
-                db.execute(
-                    "INSERT INTO users (username, password_hash) VALUES (?, ?)",
-                    (username, generate_password_hash(password1)),
+                queries.create_user(
+                    username,
+                    generate_password_hash(password1)
                 )
-                db.commit()
-            except db.IntegrityError:
+            except sqlite3.IntegrityError:
                 error = f"User {username} is already registered."
             else:
                 return redirect(url_for("auth.login"))
@@ -60,11 +58,9 @@ def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        db = get_db()
         error = None
-        user = db.execute(
-            'SELECT * FROM users WHERE username = ?', (username,)
-        ).fetchone()
+
+        user = queries.get_user_by_username(username=username)
 
         if user is None:
             error = 'Incorrect username.'
