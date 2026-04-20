@@ -4,6 +4,7 @@ from flask import (
 from werkzeug.exceptions import abort
 
 from app.auth import login_required
+from app.auth.security import check_csrf
 from app.movies import queries
 
 bp = Blueprint('movies', __name__)
@@ -40,6 +41,7 @@ def index():
 @login_required
 def create():
     if request.method == 'POST':
+        check_csrf()
         title = request.form.get('title', '').strip()
         body = request.form.get('body', '').strip()
         liked_raw = request.form.get('liked')
@@ -89,6 +91,7 @@ def update(review_id):
         abort(404, "Review not found or you don't have permission.")
 
     if request.method == 'POST':
+        check_csrf()
         title = request.form['title'].strip()
         body = request.form.get('body', '').strip()
         liked = request.form.get('liked')
@@ -114,6 +117,7 @@ def update(review_id):
 @bp.route('/<int:id>/delete', methods=('POST',))
 @login_required
 def delete(id):
+    check_csrf()
     review = queries.get_review(review_id=id, user_id=g.user['id'])
 
     if review is None:
@@ -152,6 +156,7 @@ def feed():
 @bp.route('/<int:review_id>/like', methods=['POST'])
 @login_required
 def like(review_id):
+    check_csrf()
     queries.set_reaction(g.user['id'], review_id, 1)
     return redirect(url_for('movies.feed'))
 
@@ -159,5 +164,6 @@ def like(review_id):
 @bp.route('/<int:review_id>/dislike', methods=['POST'])
 @login_required
 def dislike(review_id):
+    check_csrf()
     queries.set_reaction(g.user['id'], review_id, -1)
     return redirect(url_for('movies.feed'))

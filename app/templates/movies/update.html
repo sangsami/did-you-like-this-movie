@@ -6,6 +6,7 @@
 
 {% block content %}
 <form method="post">
+  <input type="hidden" name="csrf_token" value="{{ session['csrf_token'] }}">
   <label for="title">Movie</label>
   <input 
     type="text"

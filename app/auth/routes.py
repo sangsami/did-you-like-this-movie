@@ -1,4 +1,5 @@
 import functools
+import secrets
 import sqlite3
 
 from flask import (
@@ -7,9 +8,17 @@ from flask import (
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from app.auth import queries
+from app.auth.security import check_csrf
 
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')
+
+
+@bp.before_app_request
+def ensure_csrf_token():
+    if "csrf_token" not in session:
+        session["csrf_token"] = secrets.token_hex(16)
+
 
 @bp.before_app_request
 def load_logged_in_user():
@@ -24,6 +33,8 @@ def load_logged_in_user():
 @bp.route('/register', methods=('GET', 'POST'))
 def register():
     if request.method == 'POST':
+        check_csrf()
+
         username = request.form['username']
         password1 = request.form['password1']
         password2 = request.form['password2']
@@ -56,6 +67,8 @@ def register():
 @bp.route('/login', methods=('GET', 'POST'))
 def login():
     if request.method == 'POST':
+        check_csrf()
+
         username = request.form['username']
         password = request.form['password']
         error = None
@@ -70,7 +83,8 @@ def login():
         if error is None:
             session.clear()
             session['user_id'] = user['id']
-            return redirect(url_for('index'))
+            session['csrf_token'] = secrets.token_hex(16)
+            return redirect(url_for('movies.index'))
 
         flash(error, 'error')
 
@@ -80,7 +94,7 @@ def login():
 @bp.route('/logout')
 def logout():
     session.clear()
-    return redirect(url_for('index'))
+    return redirect(url_for('movies.index'))
 
 
 def login_required(view):

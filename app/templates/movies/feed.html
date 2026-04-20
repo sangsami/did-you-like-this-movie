@@ -41,6 +41,7 @@
         <form method="post"
               action="{{ url_for('movies.like', review_id=review['id']) }}"
               style="display:inline;">
+          <input type="hidden" name="csrf_token" value="{{ session['csrf_token'] }}">
           <button type="submit"
             {% if liked_map[review['id']] == 1 %}disabled{% endif %}>
             Like ({{ review['likes_count'] }})
@@ -50,6 +51,7 @@
         <form method="post"
               action="{{ url_for('movies.dislike', review_id=review['id']) }}"
               style="display:inline;">
+          <input type="hidden" name="csrf_token" value="{{ session['csrf_token'] }}">
           <button type="submit"
             {% if liked_map[review['id']] == -1 %}disabled{% endif %}>
             Dislike ({{ review['dislikes_count'] }})
