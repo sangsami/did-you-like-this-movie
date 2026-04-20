@@ -95,3 +95,8 @@ form input[type="submit"] {
 form {
     position: relative;
 }
+
+.flash.error {
+  background: #fee2e2;
+  color: #991b1b;
+}

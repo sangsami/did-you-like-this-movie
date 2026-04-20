@@ -27,7 +27,7 @@ def create():
         movie_id = request.form.get('movie_id')
 
         if not title:
-            flash('Movie title is required.')
+            flash('Movie title is required.', 'error')
             return render_template('movies/create.html')
 
         liked = True if liked_raw == '1' else False if liked_raw == '0' else None
@@ -40,7 +40,7 @@ def create():
         exists = queries.review_exists(g.user['id'], movie_id)
 
         if exists:
-            flash(f'You already reviewed "{title}".')
+            flash(f'You already reviewed "{title}".', 'error')
             return render_template('movies/create.html')
 
         queries.insert_review(user_id=g.user['id'], movie_id=movie_id, body=body, liked=liked, recommend=recommend)
@@ -75,7 +75,7 @@ def update(review_id):
         recommend = request.form.get('recommend')
 
         if not title:
-            flash('Movie title is required.')
+            flash('Movie title is required.', 'error')
             return render_template('movies/update.html', review=review)
 
         liked = True if liked == '1' else False if liked == '0' else None
