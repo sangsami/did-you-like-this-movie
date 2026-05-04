@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% from '_macros.html' import tristate %}
 
 {% block header %}
   <h1>{% block title %}Reviews{% endblock %}</h1>
@@ -33,27 +34,8 @@
       <h2>{{ review['title'] }}</h2>
 
       <div class="meta">
-        <span>
-          Liked:
-          {% if review.liked is none %}
-            No answer
-          {% elif review.liked %}
-            Yes
-          {% else %}
-            No
-          {% endif %}
-        </span>
-
-        <span>
-          Recommend:
-          {% if review.recommend is none %}
-            No answer
-          {% elif review.recommend %}
-            Yes
-          {% else %}
-            No
-          {% endif %}
-        </span>
+        {{ tristate('Liked', review.liked) }}
+        {{ tristate('Recommend', review.recommend) }}
       </div>
 
       <p class="review-body">

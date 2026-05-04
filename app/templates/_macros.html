@@ -1,0 +1,6 @@
+{% macro tristate(label, value) %}
+  <span>
+    {{ label }}:
+    {% if value is none %}No answer{% elif value %}Yes{% else %}No{% endif %}
+  </span>
+{% endmacro %}
