@@ -8,99 +8,222 @@ body {
 nav {
   padding: 10px 20px;
   border-bottom: 1px solid #ccc;
+  display: flex;
+  align-items: center;
+  gap: 20px;
 }
 
-nav a {
-  text-decoration: none;
-  color: #222;
+nav h1 {
+  margin: 0;
+  font-size: 1rem;
 }
 
 nav ul {
   list-style: none;
-  display: inline;
+  margin: 0;
   padding: 0;
-  margin-left: 10px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 nav li {
-  display: inline;
-  margin-left: 10px;
+  display: flex;
+  align-items: center;
 }
 
+nav form {
+  margin: 0;
+}
+
+nav a,
+nav button {
+  text-decoration: none;
+  color: #222;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+}
+
+nav a:hover,
+nav button:hover {
+  text-decoration: underline;
+}
+
+nav a.active {
+  font-weight: bold;
+  border-bottom: 2px solid #222;
+}
+
+/* ── Page layout ── */
 .content {
   max-width: 700px;
   margin: 20px auto;
   padding: 0 10px;
 }
 
-article {
-  margin-bottom: 20px;
+/* ── Cards ── */
+article.card {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
 }
 
-article h2 {
-  margin-bottom: 5px;
+article.card h2 {
+  margin: 0 0 6px;
 }
 
-article p, article small {
-  margin: 5px 0;
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin: 6px 0;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.genres {
+  font-size: 0.9rem;
+  color: #555;
+  margin: 4px 0;
+}
+
+.review-body {
+  white-space: pre-line;
+  margin: 8px 0;
+}
+
+.actions {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.actions form {
+  margin: 0;
+}
+
+.filters {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.filters a {
+  text-decoration: none;
+  padding: 4px 10px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  color: #222;
+}
+
+.filters a.active {
+  background: #222;
+  color: #fff;
+  border-color: #222;
+}
+
+form label {
+  display: block;
+  margin-top: 10px;
+  font-weight: bold;
 }
 
 form input[type="text"],
+form input[type="password"],
 form textarea {
   width: 100%;
-  padding: 5px;
-  margin: 5px 0 10px;
+  padding: 6px;
+  margin: 4px 0 10px;
   border: 1px solid #ccc;
+  box-sizing: border-box;
+  font: inherit;
 }
 
 form textarea {
   min-height: 80px;
+  resize: vertical;
 }
 
-form input[type="submit"] {
-  padding: 5px 10px;
+fieldset {
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  padding: 8px 12px;
+  margin: 8px 0 10px;
+}
+
+legend {
+  font-weight: bold;
+  padding: 0 4px;
+}
+
+fieldset label {
+  display: inline;
+  font-weight: normal;
+  margin-right: 12px;
+  margin-top: 0;
+}
+
+button,
+input[type="submit"],
+.actions a {
+  padding: 6px 14px;
+  border: 1px solid #ccc;
+  background: #f5f5f5;
+  cursor: pointer;
+  font: inherit;
+  border-radius: 3px;
+  text-decoration: none;
+  color: #222;
+}
+
+button:hover,
+input[type="submit"]:hover,
+.actions a:hover {
+  background: #e8e8e8;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+button.active {
+  background: #222;
+  color: #fff;
+  border-color: #222;
 }
 
 .flash {
-  padding: 8px;
-  margin-bottom: 10px;
+  padding: 8px 12px;
+  margin-bottom: 12px;
   border: 1px solid #ccc;
   background: #f5f5f5;
-}
-
-#results {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    border: 1px solid #ccc;
-    border-top: none;
-    max-height: 200px;
-    overflow-y: auto;
-    position: absolute;
-    background: white;
-    width: 300px;
-    z-index: 100;
-}
-
-#results li {
-    padding: 10px;
-    cursor: pointer;
-    border-bottom: 1px solid #eee;
-}
-
-#results li:hover {
-    background-color: #f0f0f0;
-}
-
-form {
-    position: relative;
+  border-radius: 3px;
 }
 
 .flash.error {
   background: #fee2e2;
   color: #991b1b;
+  border-color: #fca5a5;
 }
 
-.review-body {
-  white-space: pre-line;
+.movie-list {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0;
+}
+
+.movie-list li {
+  padding: 8px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.movie-list li:last-child {
+  border-bottom: none;
 }
