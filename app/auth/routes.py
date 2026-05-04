@@ -75,10 +75,8 @@ def login():
 
         user = queries.get_user_by_username(username=username)
 
-        if user is None:
-            error = 'Incorrect username.'
-        elif not check_password_hash(user['password_hash'], password):
-            error = 'Incorrect password.'
+        if user is None or not check_password_hash(user['password_hash'], password):
+            error = 'Incorrect username or password.'
 
         if error is None:
             session.clear()
