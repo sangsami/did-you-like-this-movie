@@ -152,7 +152,7 @@ def delete(review_id):
     if review is None:
         abort(404, "Review not found or you don't have permission.")
 
-    queries.delete_review(id, g.user['id'])
+    queries.delete_review(review_id, g.user['id'])
     return redirect(url_for('movies.index'))
 
 

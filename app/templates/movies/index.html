@@ -46,7 +46,7 @@
       <div class="actions">
         <a href="{{ url_for('movies.update', review_id=review['id']) }}">Edit</a>
 
-        <form method="post" action="{{ url_for('movies.delete', id=review['id']) }}" >
+        <form method="post" action="{{ url_for('movies.delete', review_id=review['id']) }}"
           <input type="hidden" name="csrf_token" value="{{ session['csrf_token'] }}">
           <button type="submit">Delete</button>
         </form>
