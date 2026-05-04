@@ -35,56 +35,63 @@ def index():
     else:
         reviews = all_reviews
 
+    genres_map = queries.get_genres_for_reviews([r['id'] for r in reviews])
+
     return render_template(
         'movies/index.html',
         reviews=reviews,
         stats=stats,
-        active_filter=filter_type
+        active_filter=filter_type,
+        genres_map=genres_map
     )
 
-@bp.route('/create', methods=('GET', 'POST'))
+
+@bp.route('/create')
 @login_required
 def create():
+    q = request.args.get('q', '').strip()
+    movies = queries.search_movies(q) if q else []
+    return render_template('movies/create.html', movies=movies, q=q)
+
+
+@bp.route('/create/<int:movie_id>', methods=('GET', 'POST'))
+@login_required
+def create_review(movie_id):
+    movie = queries.get_movie_by_id(movie_id)
+    if movie is None:
+        abort(404)
+
+    all_genres = queries.get_all_genres()
+
     if request.method == 'POST':
         check_csrf()
-        title = request.form.get('title', '').strip()
         body = request.form.get('body', '').strip()
         liked_raw = request.form.get('liked')
         recommend_raw = request.form.get('recommend')
-        movie_id = request.form.get('movie_id')
+        genre_ids = request.form.getlist('genres')
 
-        if not title:
-            flash('Movie title is required.', 'error')
-            return render_template('movies/create.html')
+        if len(body) > 2000:
+            flash('Review must be 2000 characters or fewer.', 'error')
+            return render_template('movies/create_review.html', movie=movie, all_genres=all_genres)
 
-        liked = True if liked_raw == '1' else False if liked_raw == '0' else None
-        recommend = True if recommend_raw == '1' else False if recommend_raw == '0' else None
+        if queries.review_exists(g.user['id'], movie_id):
+            flash('You already reviewed this movie.', 'error')
+            return redirect(url_for('movies.index'))
 
-        if not movie_id:
-            movie_id = get_or_create_movie(title)
+        liked = _parse_bool(liked_raw)
+        recommend = _parse_bool(recommend_raw)
 
-        
-        exists = queries.review_exists(g.user['id'], movie_id)
-
-        if exists:
-            flash(f'You already reviewed "{title}".', 'error')
-            return render_template('movies/create.html')
-
-        queries.insert_review(user_id=g.user['id'], movie_id=movie_id, body=body, liked=liked, recommend=recommend)
+        review_id = queries.insert_review(
+            user_id=g.user['id'],
+            movie_id=movie_id,
+            body=body,
+            liked=liked,
+            recommend=recommend
+        )
+        queries.set_review_genres(review_id, genre_ids)
         return redirect(url_for('movies.index'))
 
-    return render_template('movies/create.html')
-
-
-def get_or_create_movie(title):
-    movie = queries.find_movie_by_title(title)
-
-    if movie is None:
-        movie_id = queries.create_movie(title=title.strip())
-    else:
-        movie_id = movie['id']
-
-    return movie_id
+    return render_template('movies/create_review.html', movie=movie, all_genres=all_genres)
 
 
 @bp.route('/<int:review_id>/update', methods=('GET', 'POST'))
@@ -95,28 +102,36 @@ def update(review_id):
     if review is None:
         abort(404, "Review not found or you don't have permission.")
 
+    all_genres = queries.get_all_genres()
+    current_genre_ids = {g['id'] for g in queries.get_review_genres(review_id)}
+
     if request.method == 'POST':
         check_csrf()
-        title = request.form['title'].strip()
         body = request.form.get('body', '').strip()
         liked = request.form.get('liked')
         recommend = request.form.get('recommend')
+        genre_ids = request.form.getlist('genres')
 
-        if not title:
-            flash('Movie title is required.', 'error')
-            return render_template('movies/update.html', review=review)
+        if len(body) > 2000:
+            flash('Review must be 2000 characters or fewer.', 'error')
+            return render_template('movies/update.html', review=review, all_genres=all_genres,
+                                   current_genre_ids=current_genre_ids)
 
-        liked = True if liked == '1' else False if liked == '0' else None
-        recommend = True if recommend == '1' else False if recommend == '0' else None
+        liked = _parse_bool(liked)
+        recommend = _parse_bool(recommend)
 
-        movie_id = get_or_create_movie(title)
-
-        queries.update_review(review_id=review_id, movie_id=movie_id, body=body, liked=liked, recommend=recommend)
+        queries.update_review(review_id=review_id, body=body, liked=liked, recommend=recommend)
+        queries.set_review_genres(review_id, genre_ids)
 
         flash('Review updated successfully.')
         return redirect(url_for('movies.index'))
 
-    return render_template('movies/update.html', review=review)
+    return render_template(
+        'movies/update.html',
+        review=review,
+        all_genres=all_genres,
+        current_genre_ids=current_genre_ids
+    )
 
 
 @bp.route('/<int:id>/delete', methods=('POST',))
@@ -135,28 +150,26 @@ def delete(id):
 @bp.route('/search')
 @login_required
 def search():
-    q = request.args.get('q', '')
-
-    movies = queries.search_movies(q)
-
-    return {"movies": [dict(m) for m in movies]}
+    q = request.args.get('q', '').strip()
+    movies = queries.search_movies(q) if q else []
+    return render_template('movies/search.html', movies=movies, q=q)
 
 
 @bp.route('/feed')
 @login_required
 def feed():
-    reviews = queries.get_all_reviews_except_user(g.user['id'])
-
-    liked_map = {
-        r['id']: queries.get_user_reaction(g.user['id'], r['id'])
-        for r in reviews
-    }
+    reviews = queries.get_all_reviews()
+    liked_map = queries.get_user_reactions(g.user['id'])
+    genres_map = queries.get_genres_for_reviews([r['id'] for r in reviews])
 
     return render_template(
         'movies/feed.html',
         reviews=reviews,
-        liked_map=liked_map
+        liked_map=liked_map,
+        genres_map=genres_map,
+        current_user_id=g.user['id']
     )
+
 
 @bp.route('/<int:review_id>/like', methods=['POST'])
 @login_required

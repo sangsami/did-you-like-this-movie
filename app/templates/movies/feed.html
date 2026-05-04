@@ -18,6 +18,11 @@
         {{ tristate('Recommend', review.recommend) }}
       </div>
 
+      {% set review_genres = genres_map.get(review['id'], []) %}
+      {% if review_genres %}
+        <p class="genres">Genres: {{ review_genres | join(', ') }}</p>
+      {% endif %}
+
       <p class="review-body">{{ review['body'] }}</p>
 
       <div class="actions">
@@ -27,18 +32,18 @@
           <button disabled>Dislike ({{ review['dislikes_count'] }})</button>
         {% else %}
           <form method="post" action="{{ url_for('movies.like', review_id=review['id']) }}">
-          <input type="hidden" name="csrf_token" value="{{ session['csrf_token'] }}">
+            <input type="hidden" name="csrf_token" value="{{ session['csrf_token'] }}">
             <button type="submit" class="{{ 'active' if liked_map.get(review['id']) == 1 else '' }}">
-            Like ({{ review['likes_count'] }})
-          </button>
-        </form>
+              Like ({{ review['likes_count'] }})
+            </button>
+          </form>
 
           <form method="post" action="{{ url_for('movies.dislike', review_id=review['id']) }}">
-          <input type="hidden" name="csrf_token" value="{{ session['csrf_token'] }}">
+            <input type="hidden" name="csrf_token" value="{{ session['csrf_token'] }}">
             <button type="submit" class="{{ 'active' if liked_map.get(review['id']) == -1 else '' }}">
-            Dislike ({{ review['dislikes_count'] }})
-          </button>
-        </form>
+              Dislike ({{ review['dislikes_count'] }})
+            </button>
+          </form>
         {% endif %}
 
       </div>

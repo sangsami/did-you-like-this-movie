@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-<title>Did you like this movie?</title>
-<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <title>Did you like this movie?</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
 
@@ -15,16 +15,16 @@
     {% if g.user %}
       <li><span>{{ g.user['username'] }}</span></li>
       <li>
-      <a href="{{ url_for('movies.index') }}"
-        class="{% if request.endpoint == 'movies.index' %}active{% endif %}">
-        My Reviews
-      </a>
+        <a href="{{ url_for('movies.index') }}"
+          class="{% if request.endpoint == 'movies.index' %}active{% endif %}">
+          My Reviews
+        </a>
       </li>
       <li>
-      <a href="{{ url_for('movies.feed') }}"
-        class="{% if request.endpoint == 'movies.feed' %}active{% endif %}">
-        Explore
-      </a>
+        <a href="{{ url_for('movies.feed') }}"
+          class="{% if request.endpoint == 'movies.feed' %}active{% endif %}">
+          Explore
+        </a>
       </li>
       <li>
         <a href="{{ url_for('movies.search') }}"
@@ -55,10 +55,10 @@
   <header>
     {% block header %}{% endblock %}
   </header>
-    {% for category, message in get_flashed_messages(with_categories=True) %}
-      <div class="flash {{ category }}">{{ message }}</div>
-    {% endfor %}
-    {% block content %}{% endblock %}
+  {% for category, message in get_flashed_messages(with_categories=True) %}
+    <div class="flash {{ category }}">{{ message }}</div>
+  {% endfor %}
+  {% block content %}{% endblock %}
 </section>
 
 </body>

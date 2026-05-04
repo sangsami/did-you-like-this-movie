@@ -16,47 +16,31 @@ def get_reviews_by_user(user_id):
     """, (user_id,)).fetchall()
 
 
-def find_movie_by_title(title):
+
+def get_movie_by_id(movie_id):
     db = get_db()
     return db.execute(
-        'SELECT id FROM movies WHERE LOWER(title) = LOWER(?)',
-        (title.strip(),)
+        'SELECT id, title FROM movies WHERE id = ?',
+        (movie_id,)
     ).fetchone()
-
-
-def create_movie(title):
-    db = get_db()
-    cursor = db.execute(
-        'INSERT INTO movies (title) VALUES (?)',
-        (title.strip(),)
-    )
-    db.commit()
-    return cursor.lastrowid
-
-
-def get_or_create_movie(title):
-    movie = find_movie_by_title(title)
-    return movie['id'] if movie else create_movie(title)
 
 
 def review_exists(user_id, movie_id):
     db = get_db()
     return db.execute(
-        'SELECT id FROM reviews WHERE author_id=? AND movie_id=?',
+        'SELECT id FROM reviews WHERE author_id = ? AND movie_id = ?',
         (user_id, movie_id)
     ).fetchone()
 
 
 def insert_review(user_id, movie_id, body, liked, recommend):
     db = get_db()
-    db.execute(
-        '''
-        INSERT INTO reviews (author_id, movie_id, body, liked, recommend) 
-        VALUES (?, ?, ?, ?, ?)
-        ''',
+    cursor = db.execute(
+        'INSERT INTO reviews (author_id, movie_id, body, liked, recommend) VALUES (?, ?, ?, ?, ?)',
         (user_id, movie_id, body, liked, recommend)
     )
     db.commit()
+    return cursor.lastrowid
 
 
 def get_review(review_id, user_id):
@@ -130,35 +114,25 @@ def get_user_reactions(user_id):
     ).fetchall()
     return {row['review_id']: row['value'] for row in rows}
 
+
+def get_all_reviews():
     db = get_db()
-    row = db.execute("""
-        SELECT value
-        FROM review_reactions
-        WHERE user_id=? AND review_id=?
-    """, (user_id, review_id)).fetchone()
-
-    return row["value"] if row else None
-
-
-def get_all_reviews_except_user(user_id):
-    db = get_db()
-    return db.execute("""
-        SELECT 
+    return db.execute(
+        """
+        SELECT
             r.id, r.body, r.liked, r.recommend,
             r.author_id, m.title, u.username,
-
             COALESCE(SUM(CASE WHEN rr.value = 1 THEN 1 END), 0) AS likes_count,
             COALESCE(SUM(CASE WHEN rr.value = -1 THEN 1 END), 0) AS dislikes_count
-
         FROM reviews r
         JOIN movies m ON r.movie_id = m.id
         JOIN users u ON r.author_id = u.id
         LEFT JOIN review_reactions rr ON rr.review_id = r.id
-
-        WHERE r.author_id != ?
-
         GROUP BY r.id
         ORDER BY r.created DESC
+        """
+    ).fetchall()
+
 
 def get_all_genres():
     db = get_db()

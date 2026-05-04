@@ -36,17 +36,20 @@
         <span>Dislikes: {{ review['dislikes_count'] }}</span>
       </div>
 
-      <p class="review-body">
-        {{ review['body'] }}
-      </p>
+      {% set review_genres = genres_map.get(review['id'], []) %}
+      {% if review_genres %}
+        <p class="genres">Genres: {{ review_genres | join(', ') }}</p>
+      {% endif %}
+
+      <p class="review-body">{{ review['body'] }}</p>
 
       <div class="actions">
         <a href="{{ url_for('movies.update', review_id=review['id']) }}">Edit</a>
 
         <form method="post" action="{{ url_for('movies.delete', id=review['id']) }}" >
-            <input type="hidden" name="csrf_token" value="{{ session['csrf_token'] }}">
+          <input type="hidden" name="csrf_token" value="{{ session['csrf_token'] }}">
           <button type="submit">Delete</button>
-          </form>
+        </form>
       </div>
 
     </article>

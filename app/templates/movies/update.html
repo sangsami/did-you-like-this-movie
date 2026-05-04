@@ -24,6 +24,16 @@
     <label><input type="radio" name="recommend" value="" {% if review['recommend'] is none %}checked{% endif %}> No answer</label>
   </fieldset>
 
+  <fieldset>
+    <legend>Genres</legend>
+    {% for genre in all_genres %}
+      <label>
+        <input type="checkbox" name="genres" value="{{ genre['id'] }}"
+          {% if genre['id'] in current_genre_ids %}checked{% endif %}>
+        {{ genre['name'] }}
+      </label>
+    {% endfor %}
+  </fieldset>
 
   <label for="body">Review</label>
   <textarea name="body" id="body" maxlength="2000">{{ review['body'] }}</textarea>
