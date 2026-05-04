@@ -29,8 +29,6 @@ install: venv
 	@echo "Ensuring uv is installed in the venv..."
 	$(VENV_DIR)/bin/python -m pip install --upgrade pip
 	$(VENV_DIR)/bin/python -m pip install uv
-	@echo "Installing project dependencies via uv..."
-	$(VENV_DIR)/bin/uv sync
 	@echo "Installing dependencies..."
 	$(UV) sync
 	@echo "Dependencies installed."
@@ -49,13 +47,18 @@ seed-db:
 .PHONY: setup
 setup: init-db seed-db
 
+# Lint
+.PHONY: lint
+lint:
+	$(UV) run --active pylint app
+
 .PHONY: dev
 dev:
 	$(UV) run flask --app app run --debug
 
 .PHONY: prod
 prod:
-	$(UV) run flask --app app run --debug
+	$(UV) run flask --app app run
 
 # Clean up virtual environment and temporary files
 .PHONY: clean
