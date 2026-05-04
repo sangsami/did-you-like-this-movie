@@ -1,3 +1,5 @@
+"""Authentication routes."""
+
 import functools
 import secrets
 import sqlite3
@@ -16,12 +18,14 @@ bp = Blueprint('auth', __name__, url_prefix='/auth')
 
 @bp.before_app_request
 def ensure_csrf_token():
+    """Create CSRF token if doesn't exist."""
     if "csrf_token" not in session:
         session["csrf_token"] = secrets.token_hex(16)
 
 
 @bp.before_app_request
 def load_logged_in_user():
+    """Load logged user before request."""
     user_id = session.get('user_id')
 
     if user_id is None:
@@ -32,6 +36,7 @@ def load_logged_in_user():
 
 @bp.route('/register', methods=('GET', 'POST'))
 def register():
+    """Register route."""
     if request.method == 'POST':
         check_csrf()
 
@@ -70,6 +75,7 @@ def register():
 
 @bp.route('/login', methods=('GET', 'POST'))
 def login():
+    """Login route."""
     if request.method == 'POST':
         check_csrf()
 
@@ -95,12 +101,14 @@ def login():
 
 @bp.route('/logout', methods=('POST',))
 def logout():
+    """Logout route."""
     check_csrf()
     session.clear()
     return redirect(url_for('movies.index'))
 
 
 def login_required(view):
+    """Helper decorator for login-required routes."""
     @functools.wraps(view)
     def wrapped_view(**kwargs):
         if g.user is None:

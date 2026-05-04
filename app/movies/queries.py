@@ -1,7 +1,10 @@
+"""Movies database queries."""
+
 from app.db import get_db
 
 
 def get_reviews_by_user(user_id):
+    """Get reviews by user ID."""
     db = get_db()
     return db.execute("""
         SELECT r.id, r.body, r.author_id, r.liked, r.recommend, m.title,
@@ -18,6 +21,7 @@ def get_reviews_by_user(user_id):
 
 
 def get_movie_by_id(movie_id):
+    """Get movie by movie ID."""
     db = get_db()
     return db.execute(
         'SELECT id, title FROM movies WHERE id = ?',
@@ -26,6 +30,7 @@ def get_movie_by_id(movie_id):
 
 
 def review_exists(user_id, movie_id):
+    """Check review exists in database."""
     db = get_db()
     return db.execute(
         'SELECT id FROM reviews WHERE author_id = ? AND movie_id = ?',
@@ -34,6 +39,7 @@ def review_exists(user_id, movie_id):
 
 
 def insert_review(user_id, movie_id, body, liked, recommend):
+    """INSERT review."""
     db = get_db()
     cursor = db.execute(
         'INSERT INTO reviews (author_id, movie_id, body, liked, recommend) VALUES (?, ?, ?, ?, ?)',
@@ -44,6 +50,7 @@ def insert_review(user_id, movie_id, body, liked, recommend):
 
 
 def get_review(review_id, user_id):
+    """Get review by review ID and user ID."""
     db = get_db()
     return db.execute(
         """
@@ -57,6 +64,7 @@ def get_review(review_id, user_id):
 
 
 def update_review(review_id, body, liked, recommend):
+    """UPDATE review."""
     db = get_db()
     db.execute(
         'UPDATE reviews SET body = ?, liked = ?, recommend = ? WHERE id = ?',
@@ -66,6 +74,7 @@ def update_review(review_id, body, liked, recommend):
 
 
 def delete_review(review_id, user_id):
+    """DELETE review."""
     db = get_db()
     db.execute(
         'DELETE FROM reviews WHERE id = ? AND author_id = ?',
@@ -75,6 +84,7 @@ def delete_review(review_id, user_id):
 
 
 def search_movies(q):
+    """Search movie titles that contain given parameter."""
     db = get_db()
     return db.execute(
         'SELECT id, title FROM movies WHERE title LIKE ? LIMIT 10',
@@ -83,6 +93,7 @@ def search_movies(q):
 
 
 def set_reaction(user_id, review_id, value):
+    """Set user reaction for review."""
     db = get_db()
     existing = db.execute(
         'SELECT value FROM review_reactions WHERE user_id = ? AND review_id = ?',
@@ -107,6 +118,7 @@ def set_reaction(user_id, review_id, value):
 
 
 def get_user_reactions(user_id):
+    """GET user reactions."""
     db = get_db()
     rows = db.execute(
         'SELECT review_id, value FROM review_reactions WHERE user_id = ?',
@@ -116,6 +128,7 @@ def get_user_reactions(user_id):
 
 
 def get_all_reviews():
+    """GET all reviews."""
     db = get_db()
     return db.execute(
         """
@@ -135,11 +148,13 @@ def get_all_reviews():
 
 
 def get_all_genres():
+    """GET all genres."""
     db = get_db()
     return db.execute('SELECT id, name FROM genres ORDER BY name').fetchall()
 
 
 def get_review_genres(review_id):
+    """GET genres for single review."""
     db = get_db()
     return db.execute(
         """
@@ -153,6 +168,7 @@ def get_review_genres(review_id):
 
 
 def get_genres_for_reviews(review_ids):
+    """GET all genres for all reviews."""
     if not review_ids:
         return {}
     placeholders = ','.join('?' * len(review_ids))
@@ -173,6 +189,7 @@ def get_genres_for_reviews(review_ids):
 
 
 def set_review_genres(review_id, genre_ids):
+    """SET genres for review ID."""
     db = get_db()
     db.execute('DELETE FROM review_genres WHERE review_id = ?', (review_id,))
     if genre_ids:

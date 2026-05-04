@@ -1,7 +1,10 @@
+"""App entrypoint."""
+
 import os
 from flask import Flask
 
 def create_app(test_config=None):
+    """Create app instance."""
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_mapping(
         SECRET_KEY=os.environ.get('SECRET_KEY', 'dev'),
@@ -15,13 +18,13 @@ def create_app(test_config=None):
 
     os.makedirs(app.instance_path, exist_ok=True)
 
-    from . import db
+    from . import db  # pylint: disable=import-outside-toplevel
     db.init_app(app)
 
-    from .auth import bp as auth_bp
+    from .auth import bp as auth_bp  # pylint: disable=import-outside-toplevel
     app.register_blueprint(auth_bp)
 
-    from .movies import bp as movies_bp
+    from .movies import bp as movies_bp  # pylint: disable=import-outside-toplevel
     app.register_blueprint(movies_bp)
     app.add_url_rule('/', endpoint='index')
 

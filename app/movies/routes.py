@@ -1,3 +1,5 @@
+"""Movies routes."""
+
 from flask import (
     Blueprint, flash, g, redirect, render_template, request, url_for
 )
@@ -11,12 +13,15 @@ bp = Blueprint('movies', __name__)
 
 
 def _parse_bool(value):
+    """Helper function for converting SQLite boolean values (1/0) to true booleans
+    or None if doesn't exist."""
     return True if value == '1' else False if value == '0' else None
 
 
 @bp.route('/')
 @login_required
 def index():
+    """Index page."""
     filter_type = request.args.get('filter', 'all')
 
     all_reviews = queries.get_reviews_by_user(g.user['id'])
@@ -49,6 +54,7 @@ def index():
 @bp.route('/create')
 @login_required
 def create():
+    """Create movie page."""
     q = request.args.get('q', '').strip()
     movies = queries.search_movies(q) if q else []
     return render_template('movies/create.html', movies=movies, q=q)
@@ -57,6 +63,7 @@ def create():
 @bp.route('/create/<int:movie_id>', methods=('GET', 'POST'))
 @login_required
 def create_review(movie_id):
+    """Create review page. Login required."""
     movie = queries.get_movie_by_id(movie_id)
     if movie is None:
         abort(404)
@@ -97,6 +104,7 @@ def create_review(movie_id):
 @bp.route('/<int:review_id>/update', methods=('GET', 'POST'))
 @login_required
 def update(review_id):
+    """Update review. Login required."""
     review = queries.get_review(review_id=review_id, user_id=g.user['id'])
 
     if review is None:
@@ -134,11 +142,12 @@ def update(review_id):
     )
 
 
-@bp.route('/<int:id>/delete', methods=('POST',))
+@bp.route('/<int:review_id>/delete', methods=('POST',))
 @login_required
-def delete(id):
+def delete(review_id):
+    """DELETE review. Login required."""
     check_csrf()
-    review = queries.get_review(review_id=id, user_id=g.user['id'])
+    review = queries.get_review(review_id=review_id, user_id=g.user['id'])
 
     if review is None:
         abort(404, "Review not found or you don't have permission.")
@@ -150,6 +159,7 @@ def delete(id):
 @bp.route('/search')
 @login_required
 def search():
+    "Search movie."
     q = request.args.get('q', '').strip()
     movies = queries.search_movies(q) if q else []
     return render_template('movies/search.html', movies=movies, q=q)
@@ -158,6 +168,7 @@ def search():
 @bp.route('/feed')
 @login_required
 def feed():
+    """Review feed page."""
     reviews = queries.get_all_reviews()
     liked_map = queries.get_user_reactions(g.user['id'])
     genres_map = queries.get_genres_for_reviews([r['id'] for r in reviews])
@@ -174,6 +185,7 @@ def feed():
 @bp.route('/<int:review_id>/like', methods=['POST'])
 @login_required
 def like(review_id):
+    """Increase reaction value."""
     check_csrf()
     queries.set_reaction(g.user['id'], review_id, 1)
     return redirect(url_for('movies.feed'))
@@ -182,6 +194,7 @@ def like(review_id):
 @bp.route('/<int:review_id>/dislike', methods=['POST'])
 @login_required
 def dislike(review_id):
+    """Decrease reaction value."""
     check_csrf()
     queries.set_reaction(g.user['id'], review_id, -1)
     return redirect(url_for('movies.feed'))

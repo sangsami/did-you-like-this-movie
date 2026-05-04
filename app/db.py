@@ -1,3 +1,5 @@
+"""App database handling functions."""
+
 import sqlite3
 from datetime import datetime
 
@@ -6,6 +8,7 @@ from flask import current_app, g
 
 
 def get_db():
+    """Get database."""
     if 'db' not in g:
         g.db = sqlite3.connect(
             current_app.config['DATABASE'],
@@ -16,7 +19,8 @@ def get_db():
     return g.db
 
 
-def close_db(e=None):
+def close_db(_e=None):
+    """Close database."""
     db = g.pop('db', None)
 
     if db is not None:
@@ -24,6 +28,7 @@ def close_db(e=None):
 
 
 def init_db():
+    """Initialize database."""
     db = get_db()
 
     with current_app.open_resource('schema.sql') as f:
@@ -39,6 +44,7 @@ def init_db_command():
 
 @click.command('seed-db')
 def seed_db_command():
+    """Populate database with seed file."""
     db = get_db()
 
     db.execute("DELETE FROM movies")
@@ -61,6 +67,7 @@ sqlite3.register_converter(
 )
 
 def init_app(app):
+    """Add CLI commands."""
     app.teardown_appcontext(close_db)
     app.cli.add_command(init_db_command)
     app.cli.add_command(seed_db_command)
