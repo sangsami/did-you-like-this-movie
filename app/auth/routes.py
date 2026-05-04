@@ -93,8 +93,9 @@ def login():
     return render_template('auth/login.html')
 
 
-@bp.route('/logout')
+@bp.route('/logout', methods=('POST',))
 def logout():
+    check_csrf()
     session.clear()
     return redirect(url_for('movies.index'))
 
