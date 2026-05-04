@@ -1,31 +1,56 @@
 <!DOCTYPE html>
-
+<html lang="en">
+<head>
+  <meta charset="utf-8">
 <title>Did you like this movie?</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
 <nav>
   <h1>
     <a href="/">Did you like this movie?</a>
   </h1>
   <ul>
     {% if g.user %}
-      <li><span>{{ g.user['username'] }}</span>
+      <li><span>{{ g.user['username'] }}</span></li>
+      <li>
       <a href="{{ url_for('movies.index') }}"
         class="{% if request.endpoint == 'movies.index' %}active{% endif %}">
         My Reviews
       </a>
-
+      </li>
+      <li>
       <a href="{{ url_for('movies.feed') }}"
         class="{% if request.endpoint == 'movies.feed' %}active{% endif %}">
         Explore
       </a>
-      <a href="{{ url_for('movies.create') }}">New Review</a>
-      <li><a href="{{ url_for('auth.logout') }}">Log Out</a>
+      </li>
+      <li>
+        <a href="{{ url_for('movies.search') }}"
+          class="{% if request.endpoint == 'movies.search' %}active{% endif %}">
+          Search
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('movies.create') }}"
+          class="{% if request.endpoint == 'movies.create' %}active{% endif %}">
+          New Review
+        </a>
+      </li>
+      <li>
+        <form method="post" action="{{ url_for('auth.logout') }}">
+          <input type="hidden" name="csrf_token" value="{{ session['csrf_token'] }}">
+          <button type="submit">Log Out</button>
+        </form>
+      </li>
     {% else %}
-      <li><a href="{{ url_for('auth.register') }}">Register</a>
-      <li><a href="{{ url_for('auth.login') }}">Log In</a>
+      <li><a href="{{ url_for('auth.register') }}">Register</a></li>
+      <li><a href="{{ url_for('auth.login') }}">Log In</a></li>
     {% endif %}
   </ul>
 </nav>
+
 <section class="content">
   <header>
     {% block header %}{% endblock %}
@@ -34,5 +59,7 @@
       <div class="flash {{ category }}">{{ message }}</div>
     {% endfor %}
     {% block content %}{% endblock %}
-
 </section>
+
+</body>
+</html>

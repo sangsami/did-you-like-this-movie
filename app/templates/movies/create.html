@@ -6,89 +6,32 @@
 
 {% block content %}
 
-<form method="post">
-  <label for="title">Movie</label>
-  <div style="position: relative;">
+<form method="get" action="{{ url_for('movies.create') }}">
+  <label for="q">Search for a movie</label>
     <input 
+    type="text"
+    name="q"
+    id="q"
+    value="{{ q }}"
     maxlength="200"
     placeholder="e.g. Inception"
       required
     >
-    <ul id="results"></ul>
-  </div>
-
-  <input type="hidden" name="movie_id" id="movie_id">
-  <input type="hidden" name="csrf_token" value="{{ session['csrf_token'] }}">
-
-  <ul id="results"></ul>
-
-  <label>Did you like it?</label>
-  <input type="radio" name="liked" value="1"> Yes
-  <input type="radio" name="liked" value="0"> No
-  <input type="radio" name="liked" value="" checked> No answer
-
-  <br>
-
-  <label>Would you recommend it?</label>
-  <input type="radio" name="recommend" value="1"> Yes
-  <input type="radio" name="recommend" value="0"> No
-  <input type="radio" name="recommend" value="" checked> No answer
-
-  <br>
-
-  <label for="body">Review</label>
-  <textarea name="body" id="body"></textarea>
-
-  <input type="submit" value="Save">
+  <button type="submit">Search</button>
 </form>
 
-<script>
-  const input = document.getElementById('title');
-  const results = document.getElementById('results');
-  const movieIdInput = document.getElementById('movie_id');
+{% if q %}
+  {% if movies %}
+    <ul class="movie-list">
+      {% for movie in movies %}
+        <li>
+          <a href="{{ url_for('movies.create_review', movie_id=movie['id']) }}">{{ movie['title'] }}</a>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No movies found for "{{ q }}".</p>
+  {% endif %}
+{% endif %}
 
-  let searchTimeout = null;
-
-  input.addEventListener('input', () => {
-    const query = input.value.trim();
-    movieIdInput.value = '';
-    if (query.length < 2) {
-      results.innerHTML = '';
-      return;
-    }
-
-    clearTimeout(searchTimeout);
-    searchTimeout = setTimeout(async () => {
-      try {
-
-        const response = await fetch(`{{ url_for('movies.search') }}?q=${encodeURIComponent(query)}`);
-        const data = await response.json();
-
-        results.innerHTML = '';
-
-        data.movies.forEach(movie => {
-          const li = document.createElement('li');
-          li.textContent = movie.title;
-
-          li.addEventListener('click', () => {
-            input.value = movie.title;
-            movieIdInput.value = movie.id;
-            results.innerHTML = '';
-          });
-
-          results.appendChild(li);
-        });
-      } catch (error) {
-        console.error('Search failed:', error);
-      }
-    }, 300);
-  });
-
-
-  document.addEventListener('click', (e) => {
-    if (e.target !== input && e.target !== results) {
-      results.innerHTML = '';
-    }
-  });
-</script>
 {% endblock %}

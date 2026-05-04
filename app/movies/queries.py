@@ -4,10 +4,14 @@ from app.db import get_db
 def get_reviews_by_user(user_id):
     db = get_db()
     return db.execute("""
-        SELECT r.id, r.body, r.author_id, r.liked, r.recommend, m.title
+        SELECT r.id, r.body, r.author_id, r.liked, r.recommend, m.title,
+            COALESCE(SUM(CASE WHEN rr.value = 1 THEN 1 END), 0) AS likes_count,
+            COALESCE(SUM(CASE WHEN rr.value = -1 THEN 1 END), 0) AS dislikes_count
         FROM reviews r
         JOIN movies m ON r.movie_id = m.id
+        LEFT JOIN review_reactions rr ON rr.review_id = r.id
         WHERE r.author_id = ?
+        GROUP BY r.id
         ORDER BY r.created DESC
     """, (user_id,)).fetchall()
 
@@ -58,25 +62,21 @@ def insert_review(user_id, movie_id, body, liked, recommend):
 def get_review(review_id, user_id):
     db = get_db()
     return db.execute(
-        '''
+        """
         SELECT r.id, r.body, r.movie_id, r.liked, r.recommend, m.title
         FROM reviews r
         JOIN movies m ON r.movie_id = m.id
-        WHERE r.id=? AND r.author_id=?
-        ''',
+        WHERE r.id = ? AND r.author_id = ?
+        """,
         (review_id, user_id)
     ).fetchone()
 
 
-def update_review(review_id, movie_id, body, liked, recommend):
+def update_review(review_id, body, liked, recommend):
     db = get_db()
     db.execute(
-        '''
-        UPDATE reviews
-        SET movie_id=?, body=?, liked=?, recommend=?
-        WHERE id=?
-        ''',
-        (movie_id, body, liked, recommend, review_id)
+        'UPDATE reviews SET body = ?, liked = ?, recommend = ? WHERE id = ?',
+        (body, liked, recommend, review_id)
     )
     db.commit()
 
@@ -84,7 +84,7 @@ def update_review(review_id, movie_id, body, liked, recommend):
 def delete_review(review_id, user_id):
     db = get_db()
     db.execute(
-        'DELETE FROM reviews WHERE id=? AND author_id=?',
+        'DELETE FROM reviews WHERE id = ? AND author_id = ?',
         (review_id, user_id)
     )
     db.commit()
@@ -100,27 +100,36 @@ def search_movies(q):
 
 def set_reaction(user_id, review_id, value):
     db = get_db()
-    db.execute("""
-        INSERT INTO review_reactions (user_id, review_id, value)
-        VALUES (?, ?, ?)
-        ON CONFLICT(user_id, review_id)
-        DO UPDATE SET value=excluded.value
-    """, (user_id, review_id, value))
+    existing = db.execute(
+        'SELECT value FROM review_reactions WHERE user_id = ? AND review_id = ?',
+        (user_id, review_id)
+    ).fetchone()
+    if existing and existing['value'] == value:
+        db.execute(
+            'DELETE FROM review_reactions WHERE user_id = ? AND review_id = ?',
+            (user_id, review_id)
+        )
+    else:
+        db.execute(
+            """
+            INSERT INTO review_reactions (user_id, review_id, value)
+            VALUES (?, ?, ?)
+            ON CONFLICT(user_id, review_id)
+            DO UPDATE SET value = excluded.value
+            """,
+            (user_id, review_id, value)
+        )
     db.commit()
 
 
-def get_reaction_counts(review_id):
+def get_user_reactions(user_id):
     db = get_db()
-    return db.execute("""
-        SELECT
-            SUM(CASE WHEN value = 1 THEN 1 ELSE 0 END) AS likes,
-            SUM(CASE WHEN value = -1 THEN 1 ELSE 0 END) AS dislikes
-        FROM review_reactions
-        WHERE review_id = ?
-    """, (review_id,)).fetchone()
+    rows = db.execute(
+        'SELECT review_id, value FROM review_reactions WHERE user_id = ?',
+        (user_id,)
+    ).fetchall()
+    return {row['review_id']: row['value'] for row in rows}
 
-
-def get_user_reaction(user_id, review_id):
     db = get_db()
     row = db.execute("""
         SELECT value
