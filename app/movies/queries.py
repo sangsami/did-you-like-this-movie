@@ -2,21 +2,48 @@
 
 from app.db import get_db
 
+PER_PAGE = 10
 
-def get_reviews_by_user(user_id):
-    """Get reviews by user ID."""
+
+def get_review_stats(user_id):
     db = get_db()
-    return db.execute("""
+    row = db.execute("""
+        SELECT
+            COUNT(*) AS total,
+            SUM(CASE WHEN liked = 1 THEN 1 ELSE 0 END) AS liked,
+            SUM(CASE WHEN liked = 0 THEN 1 ELSE 0 END) AS unliked,
+            SUM(CASE WHEN liked IS NULL THEN 1 ELSE 0 END) AS no_answer
+        FROM reviews WHERE author_id = ?
+    """, (user_id,)).fetchone()
+    return {
+        'total': row['total'],
+        'liked': row['liked'] or 0,
+        'unliked': row['unliked'] or 0,
+        'no_answer': row['no_answer'] or 0,
+    }
+
+
+def get_reviews_by_user(user_id, page=1, filter_type='all'):
+    db = get_db()
+    offset = (page - 1) * PER_PAGE
+    if filter_type == 'liked':
+        extra = 'AND r.liked = 1'
+    elif filter_type == 'unliked':
+        extra = 'AND r.liked = 0'
+    else:
+        extra = ''
+    return db.execute(f"""
         SELECT r.id, r.body, r.author_id, r.liked, r.recommend, m.title,
             COALESCE(SUM(CASE WHEN rr.value = 1 THEN 1 END), 0) AS likes_count,
             COALESCE(SUM(CASE WHEN rr.value = -1 THEN 1 END), 0) AS dislikes_count
         FROM reviews r
         JOIN movies m ON r.movie_id = m.id
         LEFT JOIN review_reactions rr ON rr.review_id = r.id
-        WHERE r.author_id = ?
+        WHERE r.author_id = ? {extra}
         GROUP BY r.id
         ORDER BY r.created DESC
-    """, (user_id,)).fetchall()
+        LIMIT ? OFFSET ?
+    """, (user_id, PER_PAGE, offset)).fetchall()
 
 
 
@@ -146,28 +173,36 @@ def count_all_reviews(q='', search_by='movie'):
     return db.execute('SELECT COUNT(*) FROM reviews').fetchone()[0]
 
 
-def get_all_reviews(q='', search_by='movie'):
+def get_all_reviews(page=1, q='', search_by='movie'):
     db = get_db()
+    offset = (page - 1) * PER_PAGE
     if q and search_by == 'user':
         where = 'WHERE u.username LIKE ?'
-        params = (f'%{q}%',)
+        params = (f'%{q}%', PER_PAGE, offset)
     elif q and search_by == 'movie':
         where = 'WHERE m.title LIKE ?'
-        params = (f'%{q}%',)
+        params = (f'%{q}%', PER_PAGE, offset)
     else:
         where = ''
-        params = ()
+        params = (PER_PAGE, offset)
     return db.execute(f"""
         SELECT
             r.id, r.body, r.liked, r.recommend,
             r.author_id, m.title, u.username,
             COALESCE(SUM(CASE WHEN rr.value = 1 THEN 1 END), 0) AS likes_count,
             COALESCE(SUM(CASE WHEN rr.value = -1 THEN 1 END), 0) AS dislikes_count
-        FROM reviews r
+        FROM (
+            SELECT r.id FROM reviews r
+            JOIN movies m ON r.movie_id = m.id
+            JOIN users u ON r.author_id = u.id
+            {where}
+            ORDER BY r.created DESC
+            LIMIT ? OFFSET ?
+        ) AS page
+        JOIN reviews r ON r.id = page.id
         JOIN movies m ON r.movie_id = m.id
         JOIN users u ON r.author_id = u.id
         LEFT JOIN review_reactions rr ON rr.review_id = r.id
-        {where}
         GROUP BY r.id
         ORDER BY r.created DESC
     """, params).fetchall()

@@ -234,6 +234,25 @@ button.active {
   background: #fff;
 }
 
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 16px 0;
+}
+
+.pagination a {
+  text-decoration: none;
+  padding: 4px 10px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  color: #222;
+}
+
+.pagination a:hover {
+  background: #e8e8e8;
+}
+
 .movie-list {
   list-style: none;
   padding: 0;

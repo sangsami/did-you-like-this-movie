@@ -61,4 +61,17 @@
     </article>
   {% endfor %}
 
+  {% if total_pages > 1 %}
+    <div class="pagination">
+      {% if page > 1 %}
+        <a href="{{ url_for('movies.feed', page=page-1, q=q, search_by=search_by) }}">&laquo; Previous</a>
+      {% endif %}
+      <span>Page {{ page }} / {{ total_pages }}</span>
+      {% if page < total_pages %}
+        <a href="{{ url_for('movies.feed', page=page+1, q=q, search_by=search_by) }}">Next &raquo;</a>
+      {% endif %}
+
+    </div>
+  {% endif %}
+
 {% endblock %}

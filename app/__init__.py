@@ -1,7 +1,8 @@
 """App entrypoint."""
 
 import os
-from flask import Flask
+import time
+from flask import Flask, g
 
 def create_app(test_config=None):
     """Create app instance."""
@@ -17,6 +18,18 @@ def create_app(test_config=None):
         app.config.from_mapping(test_config)
 
     os.makedirs(app.instance_path, exist_ok=True)
+
+    @app.before_request
+    def before_request():
+        """Start timer before app request."""
+        g.start_time = time.time()
+
+    @app.after_request
+    def after_request(response):
+        """Stop timer after request."""
+        elapsed = round(time.time() - g.start_time, 2)
+        print(f"elapsed time: {elapsed} s")
+        return response
 
     from . import db  # pylint: disable=import-outside-toplevel
     db.init_app(app)

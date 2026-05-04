@@ -1,5 +1,7 @@
 """Movies routes."""
 
+import math
+
 from flask import (
     Blueprint, flash, g, redirect, render_template, request, url_for
 )
@@ -19,27 +21,29 @@ def _parse_bool(value):
 
 
 @bp.route('/')
+@bp.route('/<int:page>')
 @login_required
-def index():
+def index(page=1):
     """Index page."""
     filter_type = request.args.get('filter', 'all')
 
-    all_reviews = queries.get_reviews_by_user(g.user['id'])
-
-    stats = {
-        "total": len(all_reviews),
-        "liked": sum(1 for r in all_reviews if r['liked'] is True),
-        "unliked": sum(1 for r in all_reviews if r['liked'] is False),
-        "no_answer": sum(1 for r in all_reviews if r['liked'] is None),
-    }
+    stats = queries.get_review_stats(g.user['id'])
 
     if filter_type == 'liked':
-        reviews = [r for r in all_reviews if r['liked'] is True]
+        filtered_total = stats['liked']
     elif filter_type == 'unliked':
-        reviews = [r for r in all_reviews if r['liked'] is False]
+        filtered_total = stats['unliked']
     else:
-        reviews = all_reviews
+        filtered_total = stats['total']
 
+    total_pages = max(1, math.ceil(filtered_total / queries.PER_PAGE))
+
+    if page < 1:
+        return redirect(url_for('movies.index', page=1, filter=filter_type))
+    if page > total_pages:
+        return redirect(url_for('movies.index', page=total_pages, filter=filter_type))
+
+    reviews = queries.get_reviews_by_user(g.user['id'], page=page, filter_type=filter_type)
     genres_map = queries.get_genres_for_reviews([r['id'] for r in reviews])
 
     return render_template(
@@ -47,7 +51,9 @@ def index():
         reviews=reviews,
         stats=stats,
         active_filter=filter_type,
-        genres_map=genres_map
+        genres_map=genres_map,
+        page=page,
+        total_pages=total_pages
     )
 
 
@@ -166,15 +172,24 @@ def search():
 
 
 @bp.route('/feed')
+@bp.route('/feed/<int:page>')
 @login_required
-def feed():
+def feed(page=1):
     """Review feed page."""
     q = request.args.get('q', '').strip()
     search_by = request.args.get('search_by', 'movie')
     if search_by not in ('movie', 'user'):
         search_by = 'movie'
 
-    reviews = queries.get_all_reviews(q=q, search_by=search_by)
+    total = queries.count_all_reviews(q=q, search_by=search_by)
+    total_pages = max(1, math.ceil(total / queries.PER_PAGE))
+
+    if page < 1:
+        return redirect(url_for('movies.feed', page=1, q=q, search_by=search_by))
+    if page > total_pages:
+        return redirect(url_for('movies.feed', page=total_pages, q=q, search_by=search_by))
+
+    reviews = queries.get_all_reviews(page=page, q=q, search_by=search_by)
     liked_map = queries.get_user_reactions(g.user['id'])
     genres_map = queries.get_genres_for_reviews([r['id'] for r in reviews])
 
@@ -184,6 +199,8 @@ def feed():
         liked_map=liked_map,
         genres_map=genres_map,
         current_user_id=g.user['id'],
+        page=page,
+        total_pages=total_pages,
         q=q,
         search_by=search_by
     )
