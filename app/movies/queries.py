@@ -6,6 +6,7 @@ PER_PAGE = 10
 
 
 def get_review_stats(user_id):
+    """GET reviews statistics."""
     db = get_db()
     row = db.execute("""
         SELECT
@@ -24,6 +25,7 @@ def get_review_stats(user_id):
 
 
 def get_reviews_by_user(user_id, page=1, filter_type='all'):
+    """GET reviews by user."""
     db = get_db()
     offset = (page - 1) * PER_PAGE
     if filter_type == 'liked':
@@ -155,6 +157,7 @@ def get_user_reactions(user_id):
 
 
 def count_all_reviews(q='', search_by='movie'):
+    """Count all reviews."""
     db = get_db()
     if q and search_by == 'user':
         return db.execute(
@@ -174,6 +177,7 @@ def count_all_reviews(q='', search_by='movie'):
 
 
 def get_all_reviews(page=1, q='', search_by='movie'):
+    """GET all reviews by movie title or user."""
     db = get_db()
     offset = (page - 1) * PER_PAGE
     if q and search_by == 'user':
