@@ -1,31 +1,35 @@
 {% extends 'base.html' %}
 
 {% block header %}
-  <h1>New Review</h1>
+  <h1>Search Movies</h1>
 {% endblock %}
 
 {% block content %}
 
-<form method="get" action="{{ url_for('movies.create') }}">
-  <label for="q">Search for a movie</label>
+<form method="get" action="{{ url_for('movies.search') }}">
+  <label for="q">Movie title</label>
   <input
     type="text"
     name="q"
     id="q"
     value="{{ q }}"
     maxlength="200"
-    placeholder="e.g. Inception"
+    placeholder="Search..."
     required
   >
-  <button type="submit">Search</button>
+  <input type="submit" value="Search">
 </form>
 
 {% if q %}
+  <h2>Results for "{{ q }}"</h2>
+
   {% if movies %}
     <ul class="movie-list">
       {% for movie in movies %}
         <li>
-          <a href="{{ url_for('movies.create_review', movie_id=movie['id']) }}">{{ movie['title'] }}</a>
+          {{ movie['title'] }}
+          &mdash;
+          <a href="{{ url_for('movies.create_review', movie_id=movie['id']) }}">Write a review</a>
         </li>
       {% endfor %}
     </ul>

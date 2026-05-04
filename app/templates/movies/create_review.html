@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>Review: {{ movie['title'] }}</h1>
+{% endblock %}
+
+{% block content %}
+
+<form method="post">
+  <input type="hidden" name="csrf_token" value="{{ session['csrf_token'] }}">
+
+  <fieldset>
+    <legend>Did you like it?</legend>
+    <label><input type="radio" name="liked" value="1"> Yes</label>
+    <label><input type="radio" name="liked" value="0"> No</label>
+    <label><input type="radio" name="liked" value="" checked> No answer</label>
+  </fieldset>
+
+  <fieldset>
+    <legend>Would you recommend it?</legend>
+    <label><input type="radio" name="recommend" value="1"> Yes</label>
+    <label><input type="radio" name="recommend" value="0"> No</label>
+    <label><input type="radio" name="recommend" value="" checked> No answer</label>
+  </fieldset>
+
+  <fieldset>
+    <legend>Genres</legend>
+    {% for genre in all_genres %}
+      <label><input type="checkbox" name="genres" value="{{ genre['id'] }}"> {{ genre['name'] }}</label>
+    {% endfor %}
+  </fieldset>
+
+  <label for="body">Review</label>
+  <textarea name="body" id="body" maxlength="2000"></textarea>
+
+  <input type="submit" value="Save">
+</form>
+
+{% endblock %}
