@@ -7,6 +7,16 @@
 
 {% block content %}
 
+  <form method="get" class="search-form">
+    <input type="text" name="q" value="{{ q }}" placeholder="Search...">
+    <select name="search_by">
+      <option value="movie" {{ 'selected' if search_by == 'movie' }}>Movie</option>
+      <option value="user" {{ 'selected' if search_by == 'user' }}>User</option>
+    </select>
+    <button type="submit">Search</button>
+    {% if q %}<a href="{{ url_for('movies.feed') }}">Clear</a>{% endif %}
+  </form>
+
   {% for review in reviews %}
     <article class="card">
 

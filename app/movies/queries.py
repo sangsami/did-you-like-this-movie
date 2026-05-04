@@ -127,11 +127,37 @@ def get_user_reactions(user_id):
     return {row['review_id']: row['value'] for row in rows}
 
 
-def get_all_reviews():
-    """GET all reviews."""
+def count_all_reviews(q='', search_by='movie'):
     db = get_db()
-    return db.execute(
-        """
+    if q and search_by == 'user':
+        return db.execute(
+            """SELECT COUNT(*) FROM reviews r
+               JOIN users u ON r.author_id = u.id
+               WHERE u.username LIKE ?""",
+            (f'%{q}%',)
+        ).fetchone()[0]
+    if q and search_by == 'movie':
+        return db.execute(
+            """SELECT COUNT(*) FROM reviews r
+               JOIN movies m ON r.movie_id = m.id
+               WHERE m.title LIKE ?""",
+            (f'%{q}%',)
+        ).fetchone()[0]
+    return db.execute('SELECT COUNT(*) FROM reviews').fetchone()[0]
+
+
+def get_all_reviews(q='', search_by='movie'):
+    db = get_db()
+    if q and search_by == 'user':
+        where = 'WHERE u.username LIKE ?'
+        params = (f'%{q}%',)
+    elif q and search_by == 'movie':
+        where = 'WHERE m.title LIKE ?'
+        params = (f'%{q}%',)
+    else:
+        where = ''
+        params = ()
+    return db.execute(f"""
         SELECT
             r.id, r.body, r.liked, r.recommend,
             r.author_id, m.title, u.username,
@@ -141,10 +167,10 @@ def get_all_reviews():
         JOIN movies m ON r.movie_id = m.id
         JOIN users u ON r.author_id = u.id
         LEFT JOIN review_reactions rr ON rr.review_id = r.id
+        {where}
         GROUP BY r.id
         ORDER BY r.created DESC
-        """
-    ).fetchall()
+    """, params).fetchall()
 
 
 def get_all_genres():

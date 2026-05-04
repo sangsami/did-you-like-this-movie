@@ -169,7 +169,12 @@ def search():
 @login_required
 def feed():
     """Review feed page."""
-    reviews = queries.get_all_reviews()
+    q = request.args.get('q', '').strip()
+    search_by = request.args.get('search_by', 'movie')
+    if search_by not in ('movie', 'user'):
+        search_by = 'movie'
+
+    reviews = queries.get_all_reviews(q=q, search_by=search_by)
     liked_map = queries.get_user_reactions(g.user['id'])
     genres_map = queries.get_genres_for_reviews([r['id'] for r in reviews])
 
@@ -178,7 +183,9 @@ def feed():
         reviews=reviews,
         liked_map=liked_map,
         genres_map=genres_map,
-        current_user_id=g.user['id']
+        current_user_id=g.user['id'],
+        q=q,
+        search_by=search_by
     )
 
 
@@ -188,7 +195,7 @@ def like(review_id):
     """Increase reaction value."""
     check_csrf()
     queries.set_reaction(g.user['id'], review_id, 1)
-    return redirect(url_for('movies.feed'))
+    return redirect(request.referrer or url_for('movies.feed'))
 
 
 @bp.route('/<int:review_id>/dislike', methods=['POST'])
@@ -197,4 +204,4 @@ def dislike(review_id):
     """Decrease reaction value."""
     check_csrf()
     queries.set_reaction(g.user['id'], review_id, -1)
-    return redirect(url_for('movies.feed'))
+    return redirect(request.referrer or url_for('movies.feed'))

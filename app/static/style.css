@@ -213,6 +213,27 @@ button.active {
   border-color: #fca5a5;
 }
 
+.search-form {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 16px;
+  align-items: center;
+}
+
+.search-form input[type="text"] {
+  flex: 1;
+  width: auto;
+  margin: 0;
+}
+
+.search-form select {
+  padding: 6px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  font: inherit;
+  background: #fff;
+}
+
 .movie-list {
   list-style: none;
   padding: 0;
