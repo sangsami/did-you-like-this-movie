@@ -150,4 +150,51 @@ def get_all_reviews_except_user(user_id):
 
         GROUP BY r.id
         ORDER BY r.created DESC
-    """, (user_id,)).fetchall()
+
+def get_all_genres():
+    db = get_db()
+    return db.execute('SELECT id, name FROM genres ORDER BY name').fetchall()
+
+
+def get_review_genres(review_id):
+    db = get_db()
+    return db.execute(
+        """
+        SELECT g.id, g.name FROM genres g
+        JOIN review_genres rg ON g.id = rg.genre_id
+        WHERE rg.review_id = ?
+        ORDER BY g.name
+        """,
+        (review_id,)
+    ).fetchall()
+
+
+def get_genres_for_reviews(review_ids):
+    if not review_ids:
+        return {}
+    placeholders = ','.join('?' * len(review_ids))
+    db = get_db()
+    rows = db.execute(
+        f"""
+        SELECT rg.review_id, g.name FROM review_genres rg
+        JOIN genres g ON g.id = rg.genre_id
+        WHERE rg.review_id IN ({placeholders})
+        ORDER BY g.name
+        """,
+        tuple(review_ids)
+    ).fetchall()
+    result = {}
+    for row in rows:
+        result.setdefault(row['review_id'], []).append(row['name'])
+    return result
+
+
+def set_review_genres(review_id, genre_ids):
+    db = get_db()
+    db.execute('DELETE FROM review_genres WHERE review_id = ?', (review_id,))
+    if genre_ids:
+        db.executemany(
+            'INSERT INTO review_genres (review_id, genre_id) VALUES (?, ?)',
+            [(review_id, int(gid)) for gid in genre_ids]
+        )
+    db.commit()
