@@ -9,6 +9,11 @@ from app.movies import queries
 
 bp = Blueprint('movies', __name__)
 
+
+def _parse_bool(value):
+    return True if value == '1' else False if value == '0' else None
+
+
 @bp.route('/')
 @login_required
 def index():
