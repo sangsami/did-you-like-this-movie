@@ -11,13 +11,15 @@ def get_review_stats(user_id):
     row = db.execute("""
         SELECT
             COUNT(*) AS total,
-            SUM(CASE WHEN liked = 1 THEN 1 ELSE 0 END) AS liked,
-            SUM(CASE WHEN liked = 0 THEN 1 ELSE 0 END) AS unliked,
-            SUM(CASE WHEN liked IS NULL THEN 1 ELSE 0 END) AS no_answer
-        FROM reviews WHERE author_id = ?
+            SUM(liked = 1) AS liked,
+            SUM(liked = 0) AS unliked,
+            SUM(liked IS NULL) AS no_answer
+        FROM reviews
+        WHERE author_id = ?
     """, (user_id,)).fetchone()
+
     return {
-        'total': row['total'],
+        'total': row['total'] or 0,
         'liked': row['liked'] or 0,
         'unliked': row['unliked'] or 0,
         'no_answer': row['no_answer'] or 0,
@@ -28,25 +30,37 @@ def get_reviews_by_user(user_id, page=1, filter_type='all'):
     """GET reviews by user."""
     db = get_db()
     offset = (page - 1) * PER_PAGE
-    if filter_type == 'liked':
-        extra = 'AND r.liked = 1'
-    elif filter_type == 'unliked':
-        extra = 'AND r.liked = 0'
-    else:
-        extra = ''
-    return db.execute(f"""
-        SELECT r.id, r.body, r.author_id, r.liked, r.recommend, m.title,
-            COALESCE(SUM(CASE WHEN rr.value = 1 THEN 1 END), 0) AS likes_count,
-            COALESCE(SUM(CASE WHEN rr.value = -1 THEN 1 END), 0) AS dislikes_count
+
+    query = """
+        SELECT
+            r.id, r.body, r.author_id, r.liked, r.recommend,
+            m.title,
+            SUM(rr.value = 1) AS likes_count,
+            SUM(rr.value = -1) AS dislikes_count
         FROM reviews r
         JOIN movies m ON r.movie_id = m.id
         LEFT JOIN review_reactions rr ON rr.review_id = r.id
-        WHERE r.author_id = ? {extra}
+        WHERE r.author_id = ?
+    """
+
+    params = [user_id]
+
+    if filter_type == 'liked':
+        query += " AND r.liked = ?"
+        params.append(1)
+    elif filter_type == 'unliked':
+        query += " AND r.liked = ?"
+        params.append(0)
+
+    query += """
         GROUP BY r.id
         ORDER BY r.created DESC
         LIMIT ? OFFSET ?
-    """, (user_id, PER_PAGE, offset)).fetchall()
+    """
 
+    params.extend([PER_PAGE, offset])
+
+    return db.execute(query, params).fetchall()
 
 
 def get_movie_by_id(movie_id):
@@ -180,36 +194,43 @@ def get_all_reviews(page=1, q='', search_by='movie'):
     """GET all reviews by movie title or user."""
     db = get_db()
     offset = (page - 1) * PER_PAGE
-    if q and search_by == 'user':
-        where = 'WHERE u.username LIKE ?'
-        params = (f'%{q}%', PER_PAGE, offset)
-    elif q and search_by == 'movie':
-        where = 'WHERE m.title LIKE ?'
-        params = (f'%{q}%', PER_PAGE, offset)
-    else:
-        where = ''
-        params = (PER_PAGE, offset)
-    return db.execute(f"""
+
+    where = ""
+    params = []
+
+    if q:
+        if search_by == 'user':
+            where = "WHERE u.username LIKE ?"
+        else:
+            where = "WHERE m.title LIKE ?"
+        params.append(f'%{q}%')
+
+    query = f"""
         SELECT
             r.id, r.body, r.liked, r.recommend,
             r.author_id, m.title, u.username,
-            COALESCE(SUM(CASE WHEN rr.value = 1 THEN 1 END), 0) AS likes_count,
-            COALESCE(SUM(CASE WHEN rr.value = -1 THEN 1 END), 0) AS dislikes_count
+            SUM(rr.value = 1) AS likes_count,
+            SUM(rr.value = -1) AS dislikes_count
         FROM (
-            SELECT r.id FROM reviews r
+            SELECT r.id
+            FROM reviews r
             JOIN movies m ON r.movie_id = m.id
             JOIN users u ON r.author_id = u.id
             {where}
             ORDER BY r.created DESC
             LIMIT ? OFFSET ?
-        ) AS page
+        ) page
         JOIN reviews r ON r.id = page.id
         JOIN movies m ON r.movie_id = m.id
         JOIN users u ON r.author_id = u.id
         LEFT JOIN review_reactions rr ON rr.review_id = r.id
         GROUP BY r.id
         ORDER BY r.created DESC
-    """, params).fetchall()
+    """
+
+    params.extend([PER_PAGE, offset])
+
+    return db.execute(query, params).fetchall()
 
 
 def get_all_genres():
