@@ -54,6 +54,9 @@ CREATE TABLE review_reactions (
     FOREIGN KEY (review_id) REFERENCES reviews (id)
 );
 
+CREATE INDEX idx_reviews_author_created ON reviews (author_id, created DESC);
+CREATE INDEX idx_reactions_review ON review_reactions (review_id);
+
 INSERT INTO genres (name) VALUES
     ('Action'),
     ('Animation'),
