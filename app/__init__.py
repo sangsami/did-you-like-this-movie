@@ -1,8 +1,9 @@
 """App entrypoint."""
 
 import os
+import secrets
 import time
-from flask import Flask, g
+from flask import Flask, g, session
 
 def create_app(test_config=None):
     """Create app instance."""
@@ -18,6 +19,13 @@ def create_app(test_config=None):
         app.config.from_mapping(test_config)
 
     os.makedirs(app.instance_path, exist_ok=True)
+
+    @app.before_request
+    def ensure_csrf_token():
+        """Create CSRF token if doesn't exist."""
+        if "csrf_token" not in session:
+            session["csrf_token"] = secrets.token_hex(16)
+            session.modified = True
 
     @app.before_request
     def before_request():
@@ -39,6 +47,5 @@ def create_app(test_config=None):
 
     from .movies import bp as movies_bp  # pylint: disable=import-outside-toplevel
     app.register_blueprint(movies_bp)
-    app.add_url_rule('/', endpoint='index')
 
     return app

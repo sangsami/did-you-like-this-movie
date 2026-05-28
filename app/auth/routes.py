@@ -17,13 +17,6 @@ bp = Blueprint('auth', __name__, url_prefix='/auth')
 
 
 @bp.before_app_request
-def ensure_csrf_token():
-    """Create CSRF token if doesn't exist."""
-    if "csrf_token" not in session:
-        session["csrf_token"] = secrets.token_hex(16)
-
-
-@bp.before_app_request
 def load_logged_in_user():
     """Load logged user before request."""
     user_id = session.get('user_id')
