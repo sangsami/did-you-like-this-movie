@@ -33,6 +33,12 @@
         </a>
       </li>
       <li>
+        <a href="{{ url_for('movies.add') }}"
+          class="{% if request.endpoint == 'movies.add' %}active{% endif %}">
+          Add Movie
+        </a>
+      </li>
+      <li>
         <a href="{{ url_for('movies.create') }}"
           class="{% if request.endpoint == 'movies.create' %}active{% endif %}">
           New Review

@@ -66,6 +66,29 @@ def create():
     return render_template('movies/create.html', movies=movies, q=q)
 
 
+@bp.route('/add', methods=('GET', 'POST'))
+@login_required
+def add():
+    """Add a new movie entry. After adding, redirect to create review page."""
+    if request.method == 'POST':
+        check_csrf()
+        title = request.form.get('title', '').strip()
+        if not title:
+            flash('Title is required.', 'error')
+            return render_template('movies/add.html', title=title)
+
+        existing = queries.get_movie_by_title(title)
+        if existing:
+            flash('Movie already exists, opening review form for that title.', 'info')
+            return redirect(url_for('movies.create_review', movie_id=existing['id']))
+
+        movie_id = queries.insert_movie(title)
+        flash('Movie added successfully.')
+        return redirect(url_for('movies.create_review', movie_id=movie_id))
+
+    return render_template('movies/add.html')
+
+
 @bp.route('/create/<int:movie_id>', methods=('GET', 'POST'))
 @login_required
 def create_review(movie_id):

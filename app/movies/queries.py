@@ -135,6 +135,26 @@ def search_movies(q):
     ).fetchall()
 
 
+def insert_movie(title):
+    """Insert a new movie and return its id."""
+    db = get_db()
+    cursor = db.execute(
+        'INSERT INTO movies (title) VALUES (?)',
+        (title,)
+    )
+    db.commit()
+    return cursor.lastrowid
+
+
+def get_movie_by_title(title):
+    """Get a movie by exact title (case-insensitive)."""
+    db = get_db()
+    return db.execute(
+        'SELECT id, title FROM movies WHERE title = ? COLLATE NOCASE LIMIT 1',
+        (title,)
+    ).fetchone()
+
+
 def set_reaction(user_id, review_id, value):
     """Set user reaction for review."""
     db = get_db()
