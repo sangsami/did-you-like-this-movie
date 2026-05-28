@@ -25,7 +25,6 @@ def create_app(test_config=None):
         """Create CSRF token if doesn't exist."""
         if "csrf_token" not in session:
             session["csrf_token"] = secrets.token_hex(16)
-            session.modified = True
 
     @app.before_request
     def before_request():
@@ -35,8 +34,10 @@ def create_app(test_config=None):
     @app.after_request
     def after_request(response):
         """Stop timer after request."""
-        elapsed = round(time.time() - g.start_time, 2)
-        print(f"elapsed time: {elapsed} s")
+        start_time = getattr(g, 'start_time', None)
+        if start_time is not None:
+            elapsed = round(time.time() - start_time, 2)
+            print(f"elapsed time: {elapsed} s")
         return response
 
     from . import db  # pylint: disable=import-outside-toplevel
