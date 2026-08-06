@@ -43,10 +43,10 @@ def create_app(test_config=None):
     from . import db  # pylint: disable=import-outside-toplevel
     db.init_app(app)
 
-    from .auth import bp as auth_bp  # pylint: disable=import-outside-toplevel
+    from .auth_routes import bp as auth_bp  # pylint: disable=import-outside-toplevel
     app.register_blueprint(auth_bp)
 
-    from .movies import bp as movies_bp  # pylint: disable=import-outside-toplevel
+    from .movies_routes import bp as movies_bp  # pylint: disable=import-outside-toplevel
     app.register_blueprint(movies_bp)
 
     return app

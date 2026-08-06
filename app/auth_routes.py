@@ -9,8 +9,8 @@ from flask import (
 )
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from app.auth import queries
-from app.auth.security import check_csrf
+from app import auth_queries as queries
+from app.security import check_csrf
 
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')

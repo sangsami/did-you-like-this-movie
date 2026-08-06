@@ -7,9 +7,9 @@ from flask import (
 )
 from werkzeug.exceptions import abort
 
-from app.auth import login_required
-from app.auth.security import check_csrf
-from app.movies import queries
+from app.auth_routes import login_required
+from app.security import check_csrf
+from app import movies_queries as queries
 
 bp = Blueprint('movies', __name__)
 
