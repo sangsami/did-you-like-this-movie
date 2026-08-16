@@ -51,6 +51,27 @@ def login_required(view):
     return wrapped_view
 
 
+def validate_registration(username, password1, password2):
+    """Validate registration form values, return a list of error messages."""
+    errors = []
+
+    if not username:
+        errors.append('Username is required.')
+    elif len(username) < 3:
+        errors.append('Username must be at least 3 characters.')
+    elif len(username) > 50:
+        errors.append('Username must be 50 characters or fewer.')
+
+    if not password1 or not password2:
+        errors.append('Password is required.')
+    elif len(password1) > 200:
+        errors.append('Password must be 200 characters or fewer.')
+    elif password1 != password2:
+        errors.append("Passwords did not match")
+
+    return errors
+
+
 def _parse_bool(value):
     """Helper function for converting SQLite boolean values (1/0) to true booleans
     or None if doesn't exist."""
@@ -97,35 +118,25 @@ def register():
     if request.method == 'POST':
         check_csrf()
 
-        username = request.form['username']
+        username = request.form['username'].strip()
         password1 = request.form['password1']
         password2 = request.form['password2']
 
-        error = None
+        errors = validate_registration(username, password1, password2)
 
-        if not username:
-            error = 'Username is required.'
-        elif len(username) > 50:
-            error = 'Username must be 50 characters or fewer.'
-        elif not password1 or not password2:
-            error = 'Password is required.'
-        elif len(password1) > 200:
-            error = 'Password must be 200 characters or fewer.'
-        elif password1 != password2:
-            error = "Passwords did not match"
-
-        if error is None:
+        if not errors:
             try:
                 users.create_user(
                     username,
                     generate_password_hash(password1)
                 )
             except sqlite3.IntegrityError:
-                error = f"User {username} is already registered."
+                errors.append(f"User {username} is already registered.")
             else:
                 return redirect(url_for("login"))
 
-        flash(error, 'error')
+        for error in errors:
+            flash(error, 'error')
 
     return render_template('auth/register.html')
 
