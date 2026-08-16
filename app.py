@@ -199,7 +199,7 @@ def index(page=1):
         return redirect(url_for('index', page=total_pages, filter=filter_type))
 
     reviews = movies.get_reviews_by_user(g.user['id'], page=page, filter_type=filter_type)
-    genres_map = movies.get_genres_for_reviews([r['id'] for r in reviews])
+    genres_map = movies.get_genres_for_movies([r['movie_id'] for r in reviews])
 
     return render_template(
         'movies/index.html',
@@ -225,12 +225,14 @@ def create():
 @login_required
 def add():
     """Add a new movie entry. After adding, redirect to create review page."""
+    all_genres = movies.get_all_genres()
+
     if request.method == 'POST':
         check_csrf()
         title = request.form.get('title', '').strip()
         if not title:
             flash('Title is required.', 'error')
-            return render_template('movies/add.html', title=title)
+            return render_template('movies/add.html', title=title, all_genres=all_genres)
 
         existing = movies.get_movie_by_title(title)
         if existing:
@@ -238,10 +240,11 @@ def add():
             return redirect(url_for('create_review', movie_id=existing['id']))
 
         movie_id = movies.insert_movie(title)
+        movies.set_movie_genres(movie_id, request.form.getlist('genres'))
         flash('Movie added successfully.')
         return redirect(url_for('create_review', movie_id=movie_id))
 
-    return render_template('movies/add.html')
+    return render_template('movies/add.html', all_genres=all_genres)
 
 
 @app.route('/create/<int:movie_id>', methods=('GET', 'POST'))
@@ -252,18 +255,18 @@ def create_review(movie_id):
     if movie is None:
         abort(404)
 
-    all_genres = movies.get_all_genres()
+    movie_genres = movies.get_movie_genres(movie_id)
 
     if request.method == 'POST':
         check_csrf()
         body = request.form.get('body', '').strip()
         liked_raw = request.form.get('liked')
         recommend_raw = request.form.get('recommend')
-        genre_ids = request.form.getlist('genres')
 
         if len(body) > 2000:
             flash('Review must be 2000 characters or fewer.', 'error')
-            return render_template('movies/create_review.html', movie=movie, all_genres=all_genres)
+            return render_template('movies/create_review.html', movie=movie,
+                                   movie_genres=movie_genres)
 
         if movies.review_exists(g.user['id'], movie_id):
             flash('You already reviewed this movie.', 'error')
@@ -272,17 +275,16 @@ def create_review(movie_id):
         liked = _parse_bool(liked_raw)
         recommend = _parse_bool(recommend_raw)
 
-        review_id = movies.insert_review(
+        movies.insert_review(
             user_id=g.user['id'],
             movie_id=movie_id,
             body=body,
             liked=liked,
             recommend=recommend
         )
-        movies.set_review_genres(review_id, genre_ids)
         return redirect(url_for('index'))
 
-    return render_template('movies/create_review.html', movie=movie, all_genres=all_genres)
+    return render_template('movies/create_review.html', movie=movie, movie_genres=movie_genres)
 
 
 @app.route('/<int:review_id>/update', methods=('GET', 'POST'))
@@ -294,36 +296,25 @@ def update(review_id):
     if review is None:
         abort(404, "Review not found or you don't have permission.")
 
-    all_genres = movies.get_all_genres()
-    current_genre_ids = {g['id'] for g in movies.get_review_genres(review_id)}
-
     if request.method == 'POST':
         check_csrf()
         body = request.form.get('body', '').strip()
         liked = request.form.get('liked')
         recommend = request.form.get('recommend')
-        genre_ids = request.form.getlist('genres')
 
         if len(body) > 2000:
             flash('Review must be 2000 characters or fewer.', 'error')
-            return render_template('movies/update.html', review=review, all_genres=all_genres,
-                                   current_genre_ids=current_genre_ids)
+            return render_template('movies/update.html', review=review)
 
         liked = _parse_bool(liked)
         recommend = _parse_bool(recommend)
 
         movies.update_review(review_id=review_id, body=body, liked=liked, recommend=recommend)
-        movies.set_review_genres(review_id, genre_ids)
 
         flash('Review updated successfully.')
         return redirect(url_for('index'))
 
-    return render_template(
-        'movies/update.html',
-        review=review,
-        all_genres=all_genres,
-        current_genre_ids=current_genre_ids
-    )
+    return render_template('movies/update.html', review=review)
 
 
 @app.route('/<int:review_id>/delete', methods=('POST',))
@@ -369,7 +360,7 @@ def feed(page=1):
 
     reviews = movies.get_all_reviews(page=page, q=q, search_by=search_by)
     liked_map = movies.get_user_reactions(g.user['id'])
-    genres_map = movies.get_genres_for_reviews([r['id'] for r in reviews])
+    genres_map = movies.get_genres_for_movies([r['movie_id'] for r in reviews])
 
     return render_template(
         'movies/feed.html',

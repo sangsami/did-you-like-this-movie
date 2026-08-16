@@ -33,7 +33,7 @@ def get_reviews_by_user(user_id, page=1, filter_type='all'):
 
     query = """
         SELECT
-            r.id, r.body, r.author_id, r.liked, r.recommend,
+            r.id, r.body, r.author_id, r.movie_id, r.liked, r.recommend,
             m.title,
             SUM(rr.value = 1) AS likes_count,
             SUM(rr.value = -1) AS dislikes_count
@@ -228,7 +228,7 @@ def get_all_reviews(page=1, q='', search_by='movie'):
     query = f"""
         SELECT
             r.id, r.body, r.liked, r.recommend,
-            r.author_id, m.title, u.username,
+            r.author_id, r.movie_id, m.title, u.username,
             SUM(rr.value = 1) AS likes_count,
             SUM(rr.value = -1) AS dislikes_count
         FROM (
@@ -259,48 +259,48 @@ def get_all_genres():
     return db.execute('SELECT id, name FROM genres ORDER BY name').fetchall()
 
 
-def get_review_genres(review_id):
-    """GET genres for single review."""
+def get_movie_genres(movie_id):
+    """GET genres for single movie."""
     db = get_db()
     return db.execute(
         """
         SELECT g.id, g.name FROM genres g
-        JOIN review_genres rg ON g.id = rg.genre_id
-        WHERE rg.review_id = ?
+        JOIN movie_genres mg ON g.id = mg.genre_id
+        WHERE mg.movie_id = ?
         ORDER BY g.name
         """,
-        (review_id,)
+        (movie_id,)
     ).fetchall()
 
 
-def get_genres_for_reviews(review_ids):
-    """GET all genres for all reviews."""
-    if not review_ids:
+def get_genres_for_movies(movie_ids):
+    """GET all genres for all movies."""
+    if not movie_ids:
         return {}
-    placeholders = ','.join('?' * len(review_ids))
+    placeholders = ','.join('?' * len(movie_ids))
     db = get_db()
     rows = db.execute(
         f"""
-        SELECT rg.review_id, g.name FROM review_genres rg
-        JOIN genres g ON g.id = rg.genre_id
-        WHERE rg.review_id IN ({placeholders})
+        SELECT mg.movie_id, g.name FROM movie_genres mg
+        JOIN genres g ON g.id = mg.genre_id
+        WHERE mg.movie_id IN ({placeholders})
         ORDER BY g.name
         """,
-        tuple(review_ids)
+        tuple(movie_ids)
     ).fetchall()
     result = {}
     for row in rows:
-        result.setdefault(row['review_id'], []).append(row['name'])
+        result.setdefault(row['movie_id'], []).append(row['name'])
     return result
 
 
-def set_review_genres(review_id, genre_ids):
-    """SET genres for review ID."""
+def set_movie_genres(movie_id, genre_ids):
+    """SET genres for movie ID."""
     db = get_db()
-    db.execute('DELETE FROM review_genres WHERE review_id = ?', (review_id,))
+    db.execute('DELETE FROM movie_genres WHERE movie_id = ?', (movie_id,))
     if genre_ids:
         db.executemany(
-            'INSERT INTO review_genres (review_id, genre_id) VALUES (?, ?)',
-            [(review_id, int(gid)) for gid in genre_ids]
+            'INSERT INTO movie_genres (movie_id, genre_id) VALUES (?, ?)',
+            [(movie_id, int(gid)) for gid in genre_ids]
         )
     db.commit()

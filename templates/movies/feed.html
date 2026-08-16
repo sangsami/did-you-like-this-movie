@@ -28,9 +28,9 @@
         {{ tristate('Recommend', review.recommend) }}
       </div>
 
-      {% set review_genres = genres_map.get(review['id'], []) %}
-      {% if review_genres %}
-        <p class="genres">Genres: {{ review_genres | join(', ') }}</p>
+      {% set movie_genres = genres_map.get(review['movie_id'], []) %}
+      {% if movie_genres %}
+        <p class="genres">Genres: {{ movie_genres | join(', ') }}</p>
       {% endif %}
 
       <p class="review-body">{{ review['body'] }}</p>

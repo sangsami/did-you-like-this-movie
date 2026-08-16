@@ -1,5 +1,5 @@
 DROP TABLE IF EXISTS review_reactions;
-DROP TABLE IF EXISTS review_genres;
+DROP TABLE IF EXISTS movie_genres;
 DROP TABLE IF EXISTS reviews;
 DROP TABLE IF EXISTS movies;
 DROP TABLE IF EXISTS genres;
@@ -36,11 +36,11 @@ CREATE TABLE reviews (
     UNIQUE(author_id, movie_id)
 );
 
-CREATE TABLE review_genres (
-    review_id INTEGER NOT NULL,
+CREATE TABLE movie_genres (
+    movie_id INTEGER NOT NULL,
     genre_id INTEGER NOT NULL,
-    PRIMARY KEY (review_id, genre_id),
-    FOREIGN KEY (review_id) REFERENCES reviews (id),
+    PRIMARY KEY (movie_id, genre_id),
+    FOREIGN KEY (movie_id) REFERENCES movies (id),
     FOREIGN KEY (genre_id) REFERENCES genres (id)
 );
 

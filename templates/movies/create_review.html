@@ -6,6 +6,10 @@
 
 {% block content %}
 
+{% if movie_genres %}
+  <p class="genres">Genres: {{ movie_genres | map(attribute='name') | join(', ') }}</p>
+{% endif %}
+
 <form method="post">
   <input type="hidden" name="csrf_token" value="{{ session['csrf_token'] }}">
 
@@ -21,13 +25,6 @@
     <label><input type="radio" name="recommend" value="1"> Yes</label>
     <label><input type="radio" name="recommend" value="0"> No</label>
     <label><input type="radio" name="recommend" value="" checked> No answer</label>
-  </fieldset>
-
-  <fieldset>
-    <legend>Genres</legend>
-    {% for genre in all_genres %}
-      <label><input type="checkbox" name="genres" value="{{ genre['id'] }}"> {{ genre['name'] }}</label>
-    {% endfor %}
   </fieldset>
 
   <label for="body">Review</label>

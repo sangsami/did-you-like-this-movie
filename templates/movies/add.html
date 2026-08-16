@@ -9,6 +9,13 @@
     <label for="title">Title</label>
     <input id="title" name="title" value="{{ title or '' }}" required>
 
+    <fieldset>
+      <legend>Genres (optional)</legend>
+      {% for genre in all_genres %}
+        <label><input type="checkbox" name="genres" value="{{ genre['id'] }}"> {{ genre['name'] }}</label>
+      {% endfor %}
+    </fieldset>
+
     <input type="hidden" name="csrf_token" value="{{ session['csrf_token'] }}">
     <button type="submit">Add Movie</button>
   </form>
