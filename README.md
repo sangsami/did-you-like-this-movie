@@ -8,11 +8,11 @@ Users can write short reviews, classify movies by genre, and react to each other
 
 - Create an account and log in
 - Add, edit, and delete your own reviews
-- Mark a review as liked / disliked / no answer
-- Mark a review as recommended / not recommended / no answer
-- Assign one or more genres to a review (Action, Comedy, Drama, …)
+- Review movie as liked / disliked / no answer
+- Review movie as recommended / not recommended / no answer
 - Browse all reviews on the Explore feed and like or dislike them
 - Search for movies by title
+- Assign one or more genres to a movie (Action, Comedy, Drama, …)
 - View your own review statistics and reaction counts on your profile page
 
 ## How to run
