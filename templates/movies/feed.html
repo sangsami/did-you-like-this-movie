@@ -14,7 +14,7 @@
       <option value="user" {{ 'selected' if search_by == 'user' }}>User</option>
     </select>
     <button type="submit">Search</button>
-    {% if q %}<a href="{{ url_for('movies.feed') }}">Clear</a>{% endif %}
+    {% if q %}<a href="{{ url_for('feed') }}">Clear</a>{% endif %}
   </form>
 
   {% for review in reviews %}
@@ -41,14 +41,14 @@
           <button disabled>Like ({{ review['likes_count'] }})</button>
           <button disabled>Dislike ({{ review['dislikes_count'] }})</button>
         {% else %}
-          <form method="post" action="{{ url_for('movies.like', review_id=review['id']) }}">
+          <form method="post" action="{{ url_for('like', review_id=review['id']) }}">
             <input type="hidden" name="csrf_token" value="{{ session['csrf_token'] }}">
             <button type="submit" class="{{ 'active' if liked_map.get(review['id']) == 1 else '' }}">
               Like ({{ review['likes_count'] }})
             </button>
           </form>
 
-          <form method="post" action="{{ url_for('movies.dislike', review_id=review['id']) }}">
+          <form method="post" action="{{ url_for('dislike', review_id=review['id']) }}">
             <input type="hidden" name="csrf_token" value="{{ session['csrf_token'] }}">
             <button type="submit" class="{{ 'active' if liked_map.get(review['id']) == -1 else '' }}">
               Dislike ({{ review['dislikes_count'] }})
@@ -64,11 +64,11 @@
   {% if total_pages > 1 %}
     <div class="pagination">
       {% if page > 1 %}
-        <a href="{{ url_for('movies.feed', page=page-1, q=q, search_by=search_by) }}">&laquo; Previous</a>
+        <a href="{{ url_for('feed', page=page-1, q=q, search_by=search_by) }}">&laquo; Previous</a>
       {% endif %}
       <span>Page {{ page }} / {{ total_pages }}</span>
       {% if page < total_pages %}
-        <a href="{{ url_for('movies.feed', page=page+1, q=q, search_by=search_by) }}">Next &raquo;</a>
+        <a href="{{ url_for('feed', page=page+1, q=q, search_by=search_by) }}">Next &raquo;</a>
       {% endif %}
 
     </div>

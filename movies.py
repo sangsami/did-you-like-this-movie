@@ -1,6 +1,6 @@
 """Movies database queries."""
 
-from app.db import get_db
+from db import get_db
 
 PER_PAGE = 10
 

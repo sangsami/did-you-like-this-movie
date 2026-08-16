@@ -1,6 +1,6 @@
 """Authentication database queries."""
 
-from app.db import get_db
+from db import get_db
 
 def get_user_by_id(user_id):
     """Get user by ID."""

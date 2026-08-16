@@ -50,7 +50,7 @@ setup: init-db seed-db
 # Lint
 .PHONY: lint
 lint:
-	$(UV) run --active pylint app
+	$(UV) run --active pylint app.py
 
 .PHONY: dev
 dev:

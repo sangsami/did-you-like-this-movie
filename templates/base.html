@@ -15,44 +15,44 @@
     {% if g.user %}
       <li><span>{{ g.user['username'] }}</span></li>
       <li>
-        <a href="{{ url_for('movies.index') }}"
-          class="{% if request.endpoint == 'movies.index' %}active{% endif %}">
+        <a href="{{ url_for('index') }}"
+          class="{% if request.endpoint == 'index' %}active{% endif %}">
           My Reviews
         </a>
       </li>
       <li>
-        <a href="{{ url_for('movies.feed') }}"
-          class="{% if request.endpoint == 'movies.feed' %}active{% endif %}">
+        <a href="{{ url_for('feed') }}"
+          class="{% if request.endpoint == 'feed' %}active{% endif %}">
           Explore
         </a>
       </li>
       <li>
-        <a href="{{ url_for('movies.search') }}"
-          class="{% if request.endpoint == 'movies.search' %}active{% endif %}">
+        <a href="{{ url_for('search') }}"
+          class="{% if request.endpoint == 'search' %}active{% endif %}">
           Search
         </a>
       </li>
       <li>
-        <a href="{{ url_for('movies.add') }}"
-          class="{% if request.endpoint == 'movies.add' %}active{% endif %}">
+        <a href="{{ url_for('add') }}"
+          class="{% if request.endpoint == 'add' %}active{% endif %}">
           Add Movie
         </a>
       </li>
       <li>
-        <a href="{{ url_for('movies.create') }}"
-          class="{% if request.endpoint == 'movies.create' %}active{% endif %}">
+        <a href="{{ url_for('create') }}"
+          class="{% if request.endpoint == 'create' %}active{% endif %}">
           New Review
         </a>
       </li>
       <li>
-        <form method="post" action="{{ url_for('auth.logout') }}">
+        <form method="post" action="{{ url_for('logout') }}">
           <input type="hidden" name="csrf_token" value="{{ session['csrf_token'] }}">
           <button type="submit">Log Out</button>
         </form>
       </li>
     {% else %}
-      <li><a href="{{ url_for('auth.register') }}">Register</a></li>
-      <li><a href="{{ url_for('auth.login') }}">Log In</a></li>
+      <li><a href="{{ url_for('register') }}">Register</a></li>
+      <li><a href="{{ url_for('login') }}">Log In</a></li>
     {% endif %}
   </ul>
 </nav>
