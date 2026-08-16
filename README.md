@@ -17,38 +17,32 @@ Users can write short reviews, classify movies by genre, and react to each other
 
 ## How to run
 
-This project uses `uv` as the package manager.
-
-If you are running the program from scratch, just run this command from the root of this project (where Makefile is)
-
-```bash
-make clean venv install setup dev
-```
-
 **Create virtual environment and install dependencies:**
 ```bash
-make venv
-make install
+python3 -m venv venv
+source venv/bin/activate
+pip install flask
 ```
 
 **Initialise and seed the database:**
 ```bash
-make setup
+flask init-db
+flask seed-db
 ```
 
 **Run in development mode:**
 ```bash
-make dev
+flask run --debug
 ```
 
 **Run in production mode:**
 ```bash
-SECRET_KEY=your-secret-key make prod
+SECRET_KEY=your-secret-key flask run
 ```
 
 > For development the app falls back to the key `'dev'`. Set the `SECRET_KEY`
-> environment variable (or add `SECRET_KEY = '…'` to `instance/config.py`) for
-> any public deployment.
+> environment variable (or add `SECRET_KEY = '…'` to a `config.py` in the
+> project root) for any public deployment.
 
 ## Getting started
 

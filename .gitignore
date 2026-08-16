@@ -39,8 +39,6 @@ coverage.xml
 .pytest_cache/
 cover/
 
-uv.lock
-
 # Environments
 .env
 .envrc
