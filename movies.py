@@ -1,5 +1,6 @@
 """Movies database queries."""
 
+import db
 from db import get_db
 
 PER_PAGE = 10
@@ -7,8 +8,7 @@ PER_PAGE = 10
 
 def get_review_stats(user_id):
     """GET reviews statistics."""
-    db = get_db()
-    row = db.execute("""
+    row = db.query_one("""
         SELECT
             COUNT(*) AS total,
             SUM(liked = 1) AS liked,
@@ -16,7 +16,7 @@ def get_review_stats(user_id):
             SUM(liked IS NULL) AS no_answer
         FROM reviews
         WHERE author_id = ?
-    """, (user_id,)).fetchone()
+    """, (user_id,))
 
     return {
         'total': row['total'] or 0,
@@ -28,7 +28,6 @@ def get_review_stats(user_id):
 
 def get_reviews_by_user(user_id, page=1, filter_type='all'):
     """GET reviews by user."""
-    db = get_db()
     offset = (page - 1) * PER_PAGE
 
     query = """
@@ -60,42 +59,36 @@ def get_reviews_by_user(user_id, page=1, filter_type='all'):
 
     params.extend([PER_PAGE, offset])
 
-    return db.execute(query, params).fetchall()
+    return db.query(query, params)
 
 
 def get_movie_by_id(movie_id):
     """Get movie by movie ID."""
-    db = get_db()
-    return db.execute(
+    return db.query_one(
         'SELECT id, title FROM movies WHERE id = ?',
         (movie_id,)
-    ).fetchone()
+    )
 
 
 def review_exists(user_id, movie_id):
     """Check review exists in database."""
-    db = get_db()
-    return db.execute(
+    return db.query_one(
         'SELECT id FROM reviews WHERE author_id = ? AND movie_id = ?',
         (user_id, movie_id)
-    ).fetchone()
+    )
 
 
 def insert_review(user_id, movie_id, body, liked, recommend):
     """INSERT review."""
-    db = get_db()
-    cursor = db.execute(
+    return db.execute(
         'INSERT INTO reviews (author_id, movie_id, body, liked, recommend) VALUES (?, ?, ?, ?, ?)',
         (user_id, movie_id, body, liked, recommend)
     )
-    db.commit()
-    return cursor.lastrowid
 
 
 def get_review(review_id, user_id):
     """Get review by review ID and user ID."""
-    db = get_db()
-    return db.execute(
+    return db.query_one(
         """
         SELECT r.id, r.body, r.movie_id, r.liked, r.recommend, m.title
         FROM reviews r
@@ -103,65 +96,61 @@ def get_review(review_id, user_id):
         WHERE r.id = ? AND r.author_id = ?
         """,
         (review_id, user_id)
-    ).fetchone()
+    )
 
 
 def update_review(review_id, body, liked, recommend):
     """UPDATE review."""
-    db = get_db()
     db.execute(
         'UPDATE reviews SET body = ?, liked = ?, recommend = ? WHERE id = ?',
         (body, liked, recommend, review_id)
     )
-    db.commit()
 
 
 def delete_review(review_id, user_id):
-    """DELETE review."""
-    db = get_db()
-    db.execute(
+    """DELETE review and its reactions."""
+    con = get_db()
+    con.execute(
+        'DELETE FROM review_reactions WHERE review_id = ?',
+        (review_id,)
+    )
+    con.execute(
         'DELETE FROM reviews WHERE id = ? AND author_id = ?',
         (review_id, user_id)
     )
-    db.commit()
+    con.commit()
 
 
 def search_movies(q):
     """Search movie titles that contain given parameter."""
-    db = get_db()
-    return db.execute(
+    return db.query(
         'SELECT id, title FROM movies WHERE title LIKE ? LIMIT 10',
         (f'%{q}%',)
-    ).fetchall()
+    )
 
 
 def insert_movie(title):
     """Insert a new movie and return its id."""
-    db = get_db()
-    cursor = db.execute(
+    return db.execute(
         'INSERT INTO movies (title) VALUES (?)',
         (title,)
     )
-    db.commit()
-    return cursor.lastrowid
 
 
 def get_movie_by_title(title):
     """Get a movie by exact title (case-insensitive)."""
-    db = get_db()
-    return db.execute(
+    return db.query_one(
         'SELECT id, title FROM movies WHERE title = ? COLLATE NOCASE LIMIT 1',
         (title,)
-    ).fetchone()
+    )
 
 
 def set_reaction(user_id, review_id, value):
     """Set user reaction for review."""
-    db = get_db()
-    existing = db.execute(
+    existing = db.query_one(
         'SELECT value FROM review_reactions WHERE user_id = ? AND review_id = ?',
         (user_id, review_id)
-    ).fetchone()
+    )
     if existing and existing['value'] == value:
         db.execute(
             'DELETE FROM review_reactions WHERE user_id = ? AND review_id = ?',
@@ -177,42 +166,38 @@ def set_reaction(user_id, review_id, value):
             """,
             (user_id, review_id, value)
         )
-    db.commit()
 
 
 def get_user_reactions(user_id):
     """GET user reactions."""
-    db = get_db()
-    rows = db.execute(
+    rows = db.query(
         'SELECT review_id, value FROM review_reactions WHERE user_id = ?',
         (user_id,)
-    ).fetchall()
+    )
     return {row['review_id']: row['value'] for row in rows}
 
 
 def count_all_reviews(q='', search_by='movie'):
     """Count all reviews."""
-    db = get_db()
     if q and search_by == 'user':
-        return db.execute(
+        return db.query_one(
             """SELECT COUNT(*) FROM reviews r
                JOIN users u ON r.author_id = u.id
                WHERE u.username LIKE ?""",
             (f'%{q}%',)
-        ).fetchone()[0]
+        )[0]
     if q and search_by == 'movie':
-        return db.execute(
+        return db.query_one(
             """SELECT COUNT(*) FROM reviews r
                JOIN movies m ON r.movie_id = m.id
                WHERE m.title LIKE ?""",
             (f'%{q}%',)
-        ).fetchone()[0]
-    return db.execute('SELECT COUNT(*) FROM reviews').fetchone()[0]
+        )[0]
+    return db.query_one('SELECT COUNT(*) FROM reviews')[0]
 
 
 def get_all_reviews(page=1, q='', search_by='movie'):
     """GET all reviews by movie title or user."""
-    db = get_db()
     offset = (page - 1) * PER_PAGE
 
     where = ""
@@ -250,19 +235,17 @@ def get_all_reviews(page=1, q='', search_by='movie'):
 
     params.extend([PER_PAGE, offset])
 
-    return db.execute(query, params).fetchall()
+    return db.query(query, params)
 
 
 def get_all_genres():
     """GET all genres."""
-    db = get_db()
-    return db.execute('SELECT id, name FROM genres ORDER BY name').fetchall()
+    return db.query('SELECT id, name FROM genres ORDER BY name')
 
 
 def get_movie_genres(movie_id):
     """GET genres for single movie."""
-    db = get_db()
-    return db.execute(
+    return db.query(
         """
         SELECT g.id, g.name FROM genres g
         JOIN movie_genres mg ON g.id = mg.genre_id
@@ -270,7 +253,7 @@ def get_movie_genres(movie_id):
         ORDER BY g.name
         """,
         (movie_id,)
-    ).fetchall()
+    )
 
 
 def get_genres_for_movies(movie_ids):
@@ -278,8 +261,7 @@ def get_genres_for_movies(movie_ids):
     if not movie_ids:
         return {}
     placeholders = ','.join('?' * len(movie_ids))
-    db = get_db()
-    rows = db.execute(
+    rows = db.query(
         f"""
         SELECT mg.movie_id, g.name FROM movie_genres mg
         JOIN genres g ON g.id = mg.genre_id
@@ -287,7 +269,7 @@ def get_genres_for_movies(movie_ids):
         ORDER BY g.name
         """,
         tuple(movie_ids)
-    ).fetchall()
+    )
     result = {}
     for row in rows:
         result.setdefault(row['movie_id'], []).append(row['name'])
@@ -296,11 +278,11 @@ def get_genres_for_movies(movie_ids):
 
 def set_movie_genres(movie_id, genre_ids):
     """SET genres for movie ID."""
-    db = get_db()
-    db.execute('DELETE FROM movie_genres WHERE movie_id = ?', (movie_id,))
+    con = get_db()
+    con.execute('DELETE FROM movie_genres WHERE movie_id = ?', (movie_id,))
     if genre_ids:
-        db.executemany(
+        con.executemany(
             'INSERT INTO movie_genres (movie_id, genre_id) VALUES (?, ?)',
             [(movie_id, int(gid)) for gid in genre_ids]
         )
-    db.commit()
+    con.commit()

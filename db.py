@@ -14,6 +14,7 @@ def get_db():
             current_app.config['DATABASE'],
             detect_types=sqlite3.PARSE_DECLTYPES
         )
+        g.db.execute("PRAGMA foreign_keys = ON")
         g.db.row_factory = sqlite3.Row
 
     return g.db
@@ -25,6 +26,24 @@ def close_db(_e=None):
 
     if db is not None:
         db.close()
+
+
+def query(sql, params=()):
+    """Run a SELECT and return all rows."""
+    return get_db().execute(sql, params).fetchall()
+
+
+def query_one(sql, params=()):
+    """Run a SELECT and return the first row, or None."""
+    return get_db().execute(sql, params).fetchone()
+
+
+def execute(sql, params=()):
+    """Run a single write statement, commit, and return its lastrowid."""
+    db = get_db()
+    cursor = db.execute(sql, params)
+    db.commit()
+    return cursor.lastrowid
 
 
 def init_db():
@@ -47,6 +66,9 @@ def seed_db_command():
     """Populate database with seed file."""
     db = get_db()
 
+    db.execute("DELETE FROM review_reactions")
+    db.execute("DELETE FROM reviews")
+    db.execute("DELETE FROM movie_genres")
     db.execute("DELETE FROM movies")
 
     with current_app.open_resource('data/movies.txt') as f:
