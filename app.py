@@ -284,7 +284,7 @@ def create_review(movie_id):
         )
         return redirect(url_for('index'))
 
-    return render_template('movies/create_review.html', movie=movie, movie_genres=movie_genres)
+    return render_template('movies/create_review.html', movie=movie, movie_genres=movie_genres, body='')
 
 
 @app.route('/<int:review_id>/update', methods=('GET', 'POST'))
@@ -304,7 +304,7 @@ def update(review_id):
 
         if len(body) > 2000:
             flash('Review must be 2000 characters or fewer.', 'error')
-            return render_template('movies/update.html', review=review)
+            return render_template('movies/update.html', review=review, body=body)
 
         liked = _parse_bool(liked)
         recommend = _parse_bool(recommend)
@@ -314,7 +314,7 @@ def update(review_id):
         flash('Review updated successfully.')
         return redirect(url_for('index'))
 
-    return render_template('movies/update.html', review=review)
+    return render_template('movies/update.html', review=review, body=review['body'])
 
 
 @app.route('/<int:review_id>/delete', methods=('POST',))
