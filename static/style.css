@@ -93,6 +93,7 @@ article.card h2 {
 
 .review-body {
   white-space: pre-line;
+  overflow-wrap: break-word;
   margin: 8px 0;
 }
 
