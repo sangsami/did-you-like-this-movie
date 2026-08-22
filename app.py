@@ -115,6 +115,7 @@ def load_logged_in_user():
 @app.route('/auth/register', methods=('GET', 'POST'))
 def register():
     """Register route."""
+    username = ''
     if request.method == 'POST':
         check_csrf()
 
@@ -138,7 +139,7 @@ def register():
         for error in errors:
             flash(error, 'error')
 
-    return render_template('auth/register.html')
+    return render_template('auth/register.html', username=username)
 
 
 @app.route('/auth/login', methods=('GET', 'POST'))
@@ -266,7 +267,7 @@ def create_review(movie_id):
         if len(body) > 2000:
             flash('Review must be 2000 characters or fewer.', 'error')
             return render_template('movies/create_review.html', movie=movie,
-                                   movie_genres=movie_genres)
+                                   movie_genres=movie_genres, body=body)
 
         if movies.review_exists(g.user['id'], movie_id):
             flash('You already reviewed this movie.', 'error')
