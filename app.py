@@ -259,7 +259,7 @@ def create_review(movie_id):
 
     if request.method == 'POST':
         check_csrf()
-        body = request.form.get('body', '').strip()
+        body = request.form.get('body', '').replace('\r\n', '\n').strip()
         liked_raw = request.form.get('liked')
         recommend_raw = request.form.get('recommend')
 
@@ -298,7 +298,7 @@ def update(review_id):
 
     if request.method == 'POST':
         check_csrf()
-        body = request.form.get('body', '').strip()
+        body = request.form.get('body', '').replace('\r\n', '\n').strip()
         liked = request.form.get('liked')
         recommend = request.form.get('recommend')
 
