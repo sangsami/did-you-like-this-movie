@@ -29,8 +29,8 @@ CREATE TABLE reviews (
     movie_id INTEGER NOT NULL,
     created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     body TEXT,
-    liked BOOLEAN,
-    recommend BOOLEAN,
+    liked BOOLEAN CHECK (liked IN (0, 1)),
+    recommend BOOLEAN CHECK (recommend IN (0, 1)),
     FOREIGN KEY (author_id) REFERENCES users (id),
     FOREIGN KEY (movie_id) REFERENCES movies (id),
     UNIQUE(author_id, movie_id)
@@ -48,7 +48,7 @@ CREATE TABLE review_reactions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER NOT NULL,
     review_id INTEGER NOT NULL,
-    value INTEGER NOT NULL,
+    value INTEGER NOT NULL CHECK (value IN (-1, 1)),
     UNIQUE(user_id, review_id),
     FOREIGN KEY (user_id) REFERENCES users (id),
     FOREIGN KEY (review_id) REFERENCES reviews (id)

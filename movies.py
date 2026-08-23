@@ -34,8 +34,8 @@ def get_reviews_by_user(user_id, page=1, filter_type='all'):
         SELECT
             r.id, r.body, r.author_id, r.movie_id, r.liked, r.recommend,
             m.title,
-            SUM(rr.value = 1) AS likes_count,
-            SUM(rr.value = -1) AS dislikes_count
+            COALESCE(SUM(rr.value = 1), 0) AS likes_count,
+            COALESCE(SUM(rr.value = -1), 0) AS dislikes_count
         FROM reviews r
         JOIN movies m ON r.movie_id = m.id
         LEFT JOIN review_reactions rr ON rr.review_id = r.id
