@@ -9,11 +9,8 @@ from flask import current_app, g
 
 def get_db():
     """Get database."""
-    if 'db' not in g:
-        g.db = sqlite3.connect(
-            current_app.config['DATABASE'],
-            detect_types=sqlite3.PARSE_DECLTYPES
-        )
+    if "db" not in g:
+        g.db = sqlite3.connect(current_app.config["DATABASE"], detect_types=sqlite3.PARSE_DECLTYPES)
         g.db.execute("PRAGMA foreign_keys = ON")
         g.db.row_factory = sqlite3.Row
 
@@ -22,7 +19,7 @@ def get_db():
 
 def close_db(_e=None):
     """Close database."""
-    db = g.pop('db', None)
+    db = g.pop("db", None)
 
     if db is not None:
         db.close()
@@ -50,18 +47,18 @@ def init_db():
     """Initialize database."""
     db = get_db()
 
-    with current_app.open_resource('schema.sql') as f:
-        db.executescript(f.read().decode('utf8'))
+    with current_app.open_resource("schema.sql") as f:
+        db.executescript(f.read().decode("utf8"))
 
 
-@click.command('init-db')
+@click.command("init-db")
 def init_db_command():
     """Clear the existing data and create new tables."""
     init_db()
-    click.echo('Initialized the database.')
+    click.echo("Initialized the database.")
 
 
-@click.command('seed-db')
+@click.command("seed-db")
 def seed_db_command():
     """Populate database with seed file."""
     db = get_db()
@@ -71,22 +68,18 @@ def seed_db_command():
     db.execute("DELETE FROM movie_genres")
     db.execute("DELETE FROM movies")
 
-    with current_app.open_resource('data/movies.txt') as f:
-        movies = [(line.decode('utf-8').strip(),) for line in f]
+    with current_app.open_resource("data/movies.txt") as f:
+        movies = [(line.decode("utf-8").strip(),) for line in f]
 
-    db.executemany(
-        "INSERT OR IGNORE INTO movies (title) VALUES (?)",
-        movies
-    )
+    db.executemany("INSERT OR IGNORE INTO movies (title) VALUES (?)", movies)
 
     db.commit()
 
-    click.echo('Seeded the database from file.')
+    click.echo("Seeded the database from file.")
 
 
-sqlite3.register_converter(
-    "timestamp", lambda v: datetime.fromisoformat(v.decode())
-)
+sqlite3.register_converter("timestamp", lambda v: datetime.fromisoformat(v.decode()))
+
 
 def init_app(app):
     """Add CLI commands."""
