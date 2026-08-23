@@ -10,10 +10,12 @@ Users can write short reviews, classify movies by genre, and react to each other
 - Add, edit, and delete your own reviews
 - Review movie as liked / disliked / no answer
 - Review movie as recommended / not recommended / no answer
-- Browse all reviews on the Explore feed and like or dislike them
+- Browse movies on Explore, sorted by most reviewed, most liked, title, or newest
 - Search for movies by title
+- See a movie's own page with its review statistics and every review
+- Like or dislike other people's reviews
 - Assign one or more genres to a movie (Action, Comedy, Drama, …)
-- View your own review statistics and reaction counts on your profile page
+- View any user's profile page for their reviews and review statistics
 
 ## How to run
 
