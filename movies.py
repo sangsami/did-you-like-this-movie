@@ -148,18 +148,14 @@ def get_movie_by_title(title):
 
 
 def set_reaction(user_id, review_id, value):
-    """Set user reaction for review."""
-    existing = db.query_one(
-        'SELECT value FROM review_reactions WHERE user_id = ? AND review_id = ?',
-        (user_id, review_id)
+    """Set user reaction for review, or remove it if it already has the same value."""
+    con = get_db()
+    cursor = con.execute(
+        'DELETE FROM review_reactions WHERE user_id = ? AND review_id = ? AND value = ?',
+        (user_id, review_id, value)
     )
-    if existing and existing['value'] == value:
-        db.execute(
-            'DELETE FROM review_reactions WHERE user_id = ? AND review_id = ?',
-            (user_id, review_id)
-        )
-    else:
-        db.execute(
+    if cursor.rowcount == 0:
+        con.execute(
             """
             INSERT INTO review_reactions (user_id, review_id, value)
             VALUES (?, ?, ?)
@@ -168,6 +164,7 @@ def set_reaction(user_id, review_id, value):
             """,
             (user_id, review_id, value)
         )
+    con.commit()
 
 
 def get_user_reactions(user_id):
