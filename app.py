@@ -10,7 +10,7 @@ import time
 from flask import (
     Flask, flash, g, redirect, render_template, request, session, url_for
 )
-from werkzeug.exceptions import abort
+from werkzeug.exceptions import HTTPException, abort
 from werkzeug.security import check_password_hash, generate_password_hash
 
 import db
@@ -110,6 +110,12 @@ def load_logged_in_user():
         g.user = None
     else:
         g.user = users.get_user_by_id(user_id=user_id)
+
+
+@app.errorhandler(HTTPException)
+def handle_http_error(error):
+    """Render any HTTP error (404, 403, 405, 500, ...) with the site layout."""
+    return render_template('error.html', error=error), error.code
 
 
 @app.route('/auth/register', methods=('GET', 'POST'))

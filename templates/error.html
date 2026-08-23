@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{{ error.code }} {{ error.name }}</h1>
+{% endblock %}
+
+{% block content %}
+
+<p>{{ error.description }}</p>
+
+<p class="actions">
+  <a href="{{ url_for('index') }}">Back to my reviews</a>
+</p>
+
+{% endblock %}
