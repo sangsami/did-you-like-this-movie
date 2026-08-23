@@ -189,6 +189,8 @@ def index(page=1):
         filtered_total = stats['liked']
     elif filter_type == 'unliked':
         filtered_total = stats['unliked']
+    elif filter_type == 'no_answer':
+        filtered_total = stats['no_answer']
     else:
         filtered_total = stats['total']
 

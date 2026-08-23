@@ -50,6 +50,8 @@ def get_reviews_by_user(user_id, page=1, filter_type='all'):
     elif filter_type == 'unliked':
         query += " AND r.liked = ?"
         params.append(0)
+    elif filter_type == 'no_answer':
+        query += " AND r.liked IS NULL"
 
     query += """
         GROUP BY r.id

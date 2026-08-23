@@ -21,6 +21,10 @@
         class="{{ 'active' if active_filter == 'unliked' else '' }}">
         Not liked ({{ stats.unliked }})
       </a>
+      <a href="{{ url_for('index', filter='no_answer') }}"
+        class="{{ 'active' if active_filter == 'no_answer' else '' }}">
+        No reactions ({{ stats.no_answer }})
+      </a>
     </div>
   </div>
 
