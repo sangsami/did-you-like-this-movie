@@ -5,6 +5,15 @@
   </span>
 {% endmacro %}
 
+{% macro like_score(liked, unliked) -%}
+  {%- set answered = liked + unliked -%}
+  {%- if answered -%}
+    {{- (100 * liked / answered) | round | int }}% liked
+  {%- else -%}
+    No ratings yet
+  {%- endif -%}
+{%- endmacro %}
+
 {% macro plural(count, word) -%}
   {{- count }} {{ word }}{{ '' if count == 1 else 's' -}}
 {%- endmacro %}

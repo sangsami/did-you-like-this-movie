@@ -376,43 +376,32 @@ def delete(review_id):
     return redirect(url_for('index'))
 
 
-@app.route('/search')
+@app.route('/explore')
+@app.route('/explore/<int:page>')
 @login_required
-def search():
-    "Search movie."
+def explore(page=1):
+    """Explore page. Browse and search movies with their review stats."""
     q = request.args.get('q', '').strip()
-    found_movies = movies.search_movies(q) if q else []
-    return render_template('movies/search.html', movies=found_movies, q=q)
+    sort = request.args.get('sort', movies.DEFAULT_MOVIE_SORT)
+    if sort not in movies.MOVIE_SORT_WHITELIST:
+        sort = movies.DEFAULT_MOVIE_SORT
 
-
-@app.route('/feed')
-@app.route('/feed/<int:page>')
-@login_required
-def feed(page=1):
-    """Review feed page."""
-    q = request.args.get('q', '').strip()
-    search_by = request.args.get('search_by', 'movie')
-    if search_by not in ('movie', 'user'):
-        search_by = 'movie'
-
-    total = movies.count_all_reviews(q=q, search_by=search_by)
+    total = movies.count_movies(q=q)
     total_pages = max(1, math.ceil(total / movies.PER_PAGE))
 
     if page < 1:
-        return redirect(url_for('feed', page=1, q=q, search_by=search_by))
+        return redirect(url_for('explore', page=1, q=q, sort=sort))
     if page > total_pages:
-        return redirect(url_for('feed', page=total_pages, q=q, search_by=search_by))
+        return redirect(url_for('explore', page=total_pages, q=q, sort=sort))
 
-    reviews = movies.get_all_reviews(page=page, q=q, search_by=search_by)
-    reactions_map = movies.get_user_reactions(g.user['id'])
-    genres_map = movies.get_genres_for_movies([r['movie_id'] for r in reviews])
+    found_movies = movies.get_movies_with_stats(page=page, q=q, sort=sort)
+    genres_map = movies.get_genres_for_movies([m['id'] for m in found_movies])
 
     return render_template(
-        'movies/feed.html',
-        reviews=reviews,
-        reactions_map=reactions_map,
+        'movies/explore.html',
+        movies=found_movies,
         genres_map=genres_map,
-        current_user_id=g.user['id'],
+        total=total,
         page=page,
         total_pages=total_pages,
         q=q,
@@ -457,7 +446,7 @@ def like(review_id):
     """Increase reaction value."""
     check_csrf()
     movies.set_reaction(g.user['id'], review_id, 1)
-    return redirect(request.referrer or url_for('feed'))
+    return redirect(request.referrer or url_for('explore'))
 
 
 @app.route('/<int:review_id>/dislike', methods=['POST'])
@@ -466,4 +455,4 @@ def dislike(review_id):
     """Decrease reaction value."""
     check_csrf()
     movies.set_reaction(g.user['id'], review_id, -1)
-    return redirect(request.referrer or url_for('feed'))
+    return redirect(request.referrer or url_for('explore'))

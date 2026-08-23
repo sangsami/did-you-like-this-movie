@@ -5,6 +5,14 @@ from db import get_db
 
 PER_PAGE = 10
 
+MOVIE_SORT_WHITELIST = {
+    'reviews': 'review_count DESC, m.title',
+    'liked': 'liked_count DESC, m.title',
+    'title': 'm.title',
+    'newest': 'm.created DESC, m.id DESC',  # Timestamps only have second precision, break ties with id
+}
+DEFAULT_MOVIE_SORT = 'reviews'
+
 
 def get_review_stats(user_id):
     """GET reviews statistics."""
@@ -86,10 +94,7 @@ def get_movie_stats(movie_id):
         WHERE movie_id = ?
     """, (movie_id,))
 
-    stats = dict(row)
-    answered = stats['liked'] + stats['unliked']
-    stats['liked_percent'] = round(100 * stats['liked'] / answered) if answered else None
-    return stats
+    return dict(row)
 
 
 def get_reviews_by_movie(movie_id, page=1):
@@ -220,60 +225,41 @@ def get_user_reactions(user_id):
     return {row['review_id']: row['value'] for row in rows}
 
 
-def count_all_reviews(q='', search_by='movie'):
-    """Count all reviews."""
-    if q and search_by == 'user':
+def count_movies(q=''):
+    """Count movies matching the search."""
+    if q:
         return db.query_one(
-            """SELECT COUNT(*) FROM reviews r
-               JOIN users u ON r.author_id = u.id
-               WHERE u.username LIKE ?""",
+            'SELECT COUNT(*) FROM movies WHERE title LIKE ?',
             (f'%{q}%',)
         )[0]
-    if q and search_by == 'movie':
-        return db.query_one(
-            """SELECT COUNT(*) FROM reviews r
-               JOIN movies m ON r.movie_id = m.id
-               WHERE m.title LIKE ?""",
-            (f'%{q}%',)
-        )[0]
-    return db.query_one('SELECT COUNT(*) FROM reviews')[0]
+    return db.query_one('SELECT COUNT(*) FROM movies')[0]
 
 
-def get_all_reviews(page=1, q='', search_by='movie'):
-    """GET all reviews by movie title or user."""
+def get_movies_with_stats(page=1, q='', sort='reviews'):
+    """GET a page of movies with their review statistics."""
     offset = (page - 1) * PER_PAGE
+    order_by = MOVIE_SORT_WHITELIST.get(sort, MOVIE_SORT_WHITELIST[DEFAULT_MOVIE_SORT])
 
     where = ""
     params = []
 
     if q:
-        if search_by == 'user':
-            where = "WHERE u.username LIKE ?"
-        else:
-            where = "WHERE m.title LIKE ?"
+        where = "WHERE m.title LIKE ?"
         params.append(f'%{q}%')
 
     query = f"""
         SELECT
-            r.id, r.body, r.liked, r.recommend,
-            r.author_id, r.movie_id, m.title, u.username,
-            SUM(rr.value = 1) AS likes_count,
-            SUM(rr.value = -1) AS dislikes_count
-        FROM (
-            SELECT r.id
-            FROM reviews r
-            JOIN movies m ON r.movie_id = m.id
-            JOIN users u ON r.author_id = u.id
-            {where}
-            ORDER BY r.created DESC
-            LIMIT ? OFFSET ?
-        ) page
-        JOIN reviews r ON r.id = page.id
-        JOIN movies m ON r.movie_id = m.id
-        JOIN users u ON r.author_id = u.id
-        LEFT JOIN review_reactions rr ON rr.review_id = r.id
-        GROUP BY r.id
-        ORDER BY r.created DESC
+            m.id, m.title,
+            COUNT(r.id) AS review_count,
+            COALESCE(SUM(r.liked = 1), 0) AS liked_count,
+            COALESCE(SUM(r.liked = 0), 0) AS unliked_count,
+            COALESCE(SUM(r.recommend = 1), 0) AS recommend_count
+        FROM movies m
+        LEFT JOIN reviews r ON r.movie_id = m.id
+        {where}
+        GROUP BY m.id
+        ORDER BY {order_by}
+        LIMIT ? OFFSET ?
     """
 
     params.extend([PER_PAGE, offset])

@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% from '_macros.html' import like_score, plural %}
+
+{% block header %}
+  <h1>Explore</h1>
+{% endblock %}
+
+{% block content %}
+
+  <form method="get" action="{{ url_for('explore') }}" class="search-form">
+    <input type="text" name="q" value="{{ q }}" maxlength="200" placeholder="Search movies...">
+    <input type="hidden" name="sort" value="{{ sort }}">
+    <button type="submit">Search</button>
+    {% if q %}<a href="{{ url_for('explore', sort=sort) }}">Clear</a>{% endif %}
+  </form>
+
+  <div class="filters">
+    {% for key, label in [
+      ('reviews', 'Most reviewed'),
+      ('liked', 'Most liked'),
+      ('title', 'A-Z'),
+      ('newest', 'Newest')
+    ] %}
+      <a href="{{ url_for('explore', sort=key, q=q) }}"
+        class="{{ 'active' if sort == key else '' }}">{{ label }}</a>
+    {% endfor %}
+  </div>
+
+  {% if q %}
+    <p>{{ total }} movies matching "{{ q }}".</p>
+  {% endif %}
+
+  {% for movie in movies %}
+    <article class="card">
+
+      <h2>
+        <a href="{{ url_for('movie', movie_id=movie['id']) }}">{{ movie['title'] }}</a>
+      </h2>
+
+      {% set movie_genres = genres_map.get(movie['id'], []) %}
+      {% if movie_genres %}
+        <p class="genres">Genres: {{ movie_genres | join(', ') }}</p>
+      {% endif %}
+
+      <div class="meta">
+        <span>{{ movie['review_count'] }} review{{ '' if movie['review_count'] == 1 else 's' }}</span>
+        <span>{{ like_score(movie['liked_count'], movie['unliked_count']) }}</span>
+        <span>{{ movie['recommend_count'] }} recommend</span>
+      </div>
+
+      <div class="actions">
+        <a href="{{ url_for('movie', movie_id=movie['id']) }}">See reviews</a>
+      </div>
+
+    </article>
+  {% else %}
+    <p>No movies found{% if q %} for "{{ q }}"{% endif %}.</p>
+  {% endfor %}
+
+  {% if total_pages > 1 %}
+    <div class="pagination">
+      {% if page > 1 %}
+        <a href="{{ url_for('explore', page=page-1, q=q, sort=sort) }}">&laquo; Previous</a>
+      {% endif %}
+      <span>Page {{ page }} / {{ total_pages }}</span>
+      {% if page < total_pages %}
+        <a href="{{ url_for('explore', page=page+1, q=q, sort=sort) }}">Next &raquo;</a>
+      {% endif %}
+    </div>
+  {% endif %}
+
+{% endblock %}

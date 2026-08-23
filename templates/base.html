@@ -23,15 +23,9 @@
         </a>
       </li>
       <li>
-        <a href="{{ url_for('feed') }}"
-          class="{% if request.endpoint == 'feed' %}active{% endif %}">
+        <a href="{{ url_for('explore') }}"
+          class="{% if request.endpoint == 'explore' %}active{% endif %}">
           Explore
-        </a>
-      </li>
-      <li>
-        <a href="{{ url_for('search') }}"
-          class="{% if request.endpoint == 'search' %}active{% endif %}">
-          Search
         </a>
       </li>
       <li>

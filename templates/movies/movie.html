@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% from '_macros.html' import tristate, reactions with context %}
+{% from '_macros.html' import tristate, reactions, like_score, plural with context %}
 
 {% block header %}
   <h1>{{ movie['title'] }}</h1>
@@ -12,18 +12,17 @@
   {% endif %}
 
   <div class="stats">
-    <span><strong>{{ stats.total }}</strong> reviews</span>
+    <span><strong>{{ plural(stats.total, 'review') }}</strong></span>
     <span><strong>{{ stats.liked }}</strong> liked</span>
     <span><strong>{{ stats.unliked }}</strong> not liked</span>
     <span><strong>{{ stats.no_answer }}</strong> no answer</span>
     <span><strong>{{ stats.recommended }}</strong> recommend</span>
   </div>
 
-  {% if stats.liked_percent is not none %}
-    <p class="score">
-      <strong>{{ stats.liked_percent }}%</strong> of people who answered liked this movie.
-    </p>
-  {% endif %}
+  <p class="score">
+    <strong>{{ like_score(stats.liked, stats.unliked) }}</strong>
+    {%- if stats.liked + stats.unliked %}, counting only people who answered.{% endif %}
+  </p>
 
   <div class="actions">
     {% if own_review %}
