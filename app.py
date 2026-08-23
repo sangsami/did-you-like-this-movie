@@ -253,15 +253,24 @@ def add():
 @app.route('/create/<int:movie_id>', methods=('GET', 'POST'))
 @login_required
 def create_review(movie_id):
-    """Create review page. Login required."""
+    """Create review page. Login required.
+
+    Redirects to the update page if the user already reviewed this movie."""
     movie = movies.get_movie_by_id(movie_id)
     if movie is None:
         abort(404)
 
+    if request.method == 'POST':
+        check_csrf()
+
+    existing = movies.get_review_by_movie(g.user['id'], movie_id)
+    if existing:
+        flash('You already reviewed this movie. You can edit your review here.', 'info')
+        return redirect(url_for('update', review_id=existing['id']))
+
     movie_genres = movies.get_movie_genres(movie_id)
 
     if request.method == 'POST':
-        check_csrf()
         body = request.form.get('body', '').replace('\r\n', '\n').strip()
         liked_raw = request.form.get('liked')
         recommend_raw = request.form.get('recommend')
@@ -270,10 +279,6 @@ def create_review(movie_id):
             flash('Review must be 2000 characters or fewer.', 'error')
             return render_template('movies/create_review.html', movie=movie,
                                    movie_genres=movie_genres, body=body)
-
-        if movies.review_exists(g.user['id'], movie_id):
-            flash('You already reviewed this movie.', 'error')
-            return redirect(url_for('index'))
 
         liked = _parse_bool(liked_raw)
         recommend = _parse_bool(recommend_raw)

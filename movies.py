@@ -72,8 +72,8 @@ def get_movie_by_id(movie_id):
     )
 
 
-def review_exists(user_id, movie_id):
-    """Check review exists in database."""
+def get_review_by_movie(user_id, movie_id):
+    """Get a user's existing review for a movie, or None."""
     return db.query_one(
         'SELECT id FROM reviews WHERE author_id = ? AND movie_id = ?',
         (user_id, movie_id)
