@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% from '_macros.html' import tristate, reactions, plural with context %}
+
+{% block header %}
+  <h1>{{ user['username'] }}</h1>
+{% endblock %}
+
+{% block content %}
+
+  <div class="stats">
+    <span><strong>{{ plural(stats.total, 'review') }}</strong></span>
+    <span><strong>{{ stats.liked }}</strong> liked</span>
+    <span><strong>{{ stats.unliked }}</strong> not liked</span>
+    <span><strong>{{ stats.no_answer }}</strong> no answer</span>
+  </div>
+
+  {% for review in reviews %}
+    <article class="card">
+
+      <h2>
+        <a href="{{ url_for('movie', movie_id=review['movie_id']) }}">{{ review['title'] }}</a>
+      </h2>
+
+      <div class="meta">
+        {{ tristate('Liked', review.liked) }}
+        {{ tristate('Recommend', review.recommend) }}
+      </div>
+
+      {% set movie_genres = genres_map.get(review['movie_id'], []) %}
+      {% if movie_genres %}
+        <p class="genres">Genres: {{ movie_genres | join(', ') }}</p>
+      {% endif %}
+
+      <p class="review-body">{{ review['body'] }}</p>
+
+      <div class="actions">
+        {{ reactions(review, reactions_map, current_user_id) }}
+      </div>
+
+    </article>
+  {% else %}
+    <p>{{ user['username'] }} hasn't reviewed any movies yet.</p>
+  {% endfor %}
+
+  {% if total_pages > 1 %}
+    <div class="pagination">
+      {% if page > 1 %}
+        <a href="{{ url_for('profile', user_id=user['id'], page=page-1) }}">&laquo; Previous</a>
+      {% endif %}
+      <span>Page {{ page }} / {{ total_pages }}</span>
+      {% if page < total_pages %}
+        <a href="{{ url_for('profile', user_id=user['id'], page=page+1) }}">Next &raquo;</a>
+      {% endif %}
+    </div>
+  {% endif %}
+
+{% endblock %}

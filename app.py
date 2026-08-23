@@ -416,7 +416,38 @@ def feed(page=1):
         page=page,
         total_pages=total_pages,
         q=q,
-        search_by=search_by
+    )
+
+
+@app.route('/user/<int:user_id>')
+@app.route('/user/<int:user_id>/<int:page>')
+@login_required
+def profile(user_id, page=1):
+    """Profile page. Shows user's reviews and statistics."""
+    user = users.get_user_by_id(user_id)
+    if user is None:
+        abort(404, 'User not found.')
+
+    stats = movies.get_review_stats(user_id)
+    total_pages = max(1, math.ceil(stats['total'] / movies.PER_PAGE))
+
+    if page < 1:
+        return redirect(url_for('profile', user_id=user_id, page=1))
+    if page > total_pages:
+        return redirect(url_for('profile', user_id=user_id, page=total_pages))
+
+    reviews = movies.get_reviews_by_user(user_id, page=page)
+
+    return render_template(
+        'movies/profile.html',
+        user=user,
+        stats=stats,
+        reviews=reviews,
+        genres_map=movies.get_genres_for_movies([r['movie_id'] for r in reviews]),
+        reactions_map=movies.get_user_reactions(g.user['id']),
+        current_user_id=g.user['id'],
+        page=page,
+        total_pages=total_pages
     )
 
 

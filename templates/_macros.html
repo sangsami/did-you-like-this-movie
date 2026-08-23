@@ -5,6 +5,10 @@
   </span>
 {% endmacro %}
 
+{% macro plural(count, word) -%}
+  {{- count }} {{ word }}{{ '' if count == 1 else 's' -}}
+{%- endmacro %}
+
 {% macro reactions(review, reactions_map, current_user_id) %}
   {% if review['author_id'] == current_user_id %}
     <button disabled>Like ({{ review['likes_count'] }})</button>

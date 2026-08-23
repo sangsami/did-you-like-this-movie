@@ -38,7 +38,9 @@
   {% for review in reviews %}
     <article class="card">
 
-      <p>by {{ review['username'] }}</p>
+      <p>by
+        <a href="{{ url_for('profile', user_id=review['author_id']) }}">{{ review['username'] }}</a>
+      </p>
 
       <div class="meta">
         {{ tristate('Liked', review.liked) }}
