@@ -121,6 +121,14 @@ def get_reviews_by_movie(movie_id, page=1):
     """, (movie_id, PER_PAGE, offset))
 
 
+def get_review_by_id(review_id):
+    """Get a review's id and author."""
+    return db.query_one(
+        'SELECT id, author_id FROM reviews WHERE id = ?',
+        (review_id,)
+    )
+
+
 def get_review_by_movie(user_id, movie_id):
     """Get a user's existing review for a movie, or None."""
     return db.query_one(

@@ -447,12 +447,25 @@ def profile(user_id, page=1):
     )
 
 
+def react_to_review(review_id, value):
+    """Set a reaction, checks review exists and can't react own review.
+    """
+    review = movies.get_review_by_id(review_id)
+
+    if review is None:
+        abort(404, 'Review not found.')
+    if review['author_id'] == g.user['id']:
+        abort(403, "You can't react to your own review.")
+
+    movies.set_reaction(g.user['id'], review_id, value)
+
+
 @app.route('/<int:review_id>/like', methods=['POST'])
 @login_required
 def like(review_id):
     """Increase reaction value."""
     check_csrf()
-    movies.set_reaction(g.user['id'], review_id, 1)
+    react_to_review(review_id, 1)
     return redirect(request.referrer or url_for('explore'))
 
 
@@ -461,5 +474,5 @@ def like(review_id):
 def dislike(review_id):
     """Decrease reaction value."""
     check_csrf()
-    movies.set_reaction(g.user['id'], review_id, -1)
+    react_to_review(review_id, -1)
     return redirect(request.referrer or url_for('explore'))
