@@ -360,13 +360,13 @@ def feed(page=1):
         return redirect(url_for('feed', page=total_pages, q=q, search_by=search_by))
 
     reviews = movies.get_all_reviews(page=page, q=q, search_by=search_by)
-    liked_map = movies.get_user_reactions(g.user['id'])
+    reactions_map = movies.get_user_reactions(g.user['id'])
     genres_map = movies.get_genres_for_movies([r['movie_id'] for r in reviews])
 
     return render_template(
         'movies/feed.html',
         reviews=reviews,
-        liked_map=liked_map,
+        reactions_map=reactions_map,
         genres_map=genres_map,
         current_user_id=g.user['id'],
         page=page,

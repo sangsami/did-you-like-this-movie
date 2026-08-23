@@ -43,14 +43,14 @@
         {% else %}
           <form method="post" action="{{ url_for('like', review_id=review['id']) }}">
             <input type="hidden" name="csrf_token" value="{{ session['csrf_token'] }}">
-            <button type="submit" class="{{ 'active' if liked_map.get(review['id']) == 1 else '' }}">
+            <button type="submit" class="{{ 'active' if reactions_map.get(review['id']) == 1 else '' }}">
               Like ({{ review['likes_count'] }})
             </button>
           </form>
 
           <form method="post" action="{{ url_for('dislike', review_id=review['id']) }}">
             <input type="hidden" name="csrf_token" value="{{ session['csrf_token'] }}">
-            <button type="submit" class="{{ 'active' if liked_map.get(review['id']) == -1 else '' }}">
+            <button type="submit" class="{{ 'active' if reactions_map.get(review['id']) == -1 else '' }}">
               Dislike ({{ review['dislikes_count'] }})
             </button>
           </form>
