@@ -51,7 +51,7 @@ CREATE TABLE review_reactions (
     value INTEGER NOT NULL CHECK (value IN (-1, 1)),
     UNIQUE(user_id, review_id),
     FOREIGN KEY (user_id) REFERENCES users (id),
-    FOREIGN KEY (review_id) REFERENCES reviews (id)
+    FOREIGN KEY (review_id) REFERENCES reviews (id) ON DELETE CASCADE
 );
 
 CREATE INDEX idx_reviews_author_created ON reviews (author_id, created DESC);
