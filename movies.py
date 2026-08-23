@@ -72,6 +72,50 @@ def get_movie_by_id(movie_id):
     )
 
 
+def get_movie_stats(movie_id):
+    """GET review statistics for a single movie."""
+    row = db.query_one("""
+        SELECT
+            COUNT(*) AS total,
+            COALESCE(SUM(liked = 1), 0) AS liked,
+            COALESCE(SUM(liked = 0), 0) AS unliked,
+            COALESCE(SUM(liked IS NULL), 0) AS no_answer,
+            COALESCE(SUM(recommend = 1), 0) AS recommended,
+            COALESCE(SUM(recommend = 0), 0) AS not_recommended
+        FROM reviews
+        WHERE movie_id = ?
+    """, (movie_id,))
+
+    stats = dict(row)
+    answered = stats['liked'] + stats['unliked']
+    stats['liked_percent'] = round(100 * stats['liked'] / answered) if answered else None
+    return stats
+
+
+def get_reviews_by_movie(movie_id, page=1):
+    """GET reviews for a single movie, newest first."""
+    offset = (page - 1) * PER_PAGE
+
+    return db.query("""
+        SELECT
+            r.id, r.body, r.liked, r.recommend, r.author_id, u.username,
+            COALESCE(SUM(rr.value = 1), 0) AS likes_count,
+            COALESCE(SUM(rr.value = -1), 0) AS dislikes_count
+        FROM (
+            SELECT r.id
+            FROM reviews r
+            WHERE r.movie_id = ?
+            ORDER BY r.created DESC
+            LIMIT ? OFFSET ?
+        ) page
+        JOIN reviews r ON r.id = page.id
+        JOIN users u ON u.id = r.author_id
+        LEFT JOIN review_reactions rr ON rr.review_id = r.id
+        GROUP BY r.id
+        ORDER BY r.created DESC
+    """, (movie_id, PER_PAGE, offset))
+
+
 def get_review_by_movie(user_id, movie_id):
     """Get a user's existing review for a movie, or None."""
     return db.query_one(

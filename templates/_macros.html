@@ -4,3 +4,24 @@
     {% if value is none %}No answer{% elif value %}Yes{% else %}No{% endif %}
   </span>
 {% endmacro %}
+
+{% macro reactions(review, reactions_map, current_user_id) %}
+  {% if review['author_id'] == current_user_id %}
+    <button disabled>Like ({{ review['likes_count'] }})</button>
+    <button disabled>Dislike ({{ review['dislikes_count'] }})</button>
+  {% else %}
+    <form method="post" action="{{ url_for('like', review_id=review['id']) }}">
+      <input type="hidden" name="csrf_token" value="{{ session['csrf_token'] }}">
+      <button type="submit" class="{{ 'active' if reactions_map.get(review['id']) == 1 else '' }}">
+        Like ({{ review['likes_count'] }})
+      </button>
+    </form>
+
+    <form method="post" action="{{ url_for('dislike', review_id=review['id']) }}">
+      <input type="hidden" name="csrf_token" value="{{ session['csrf_token'] }}">
+      <button type="submit" class="{{ 'active' if reactions_map.get(review['id']) == -1 else '' }}">
+        Dislike ({{ review['dislikes_count'] }})
+      </button>
+    </form>
+  {% endif %}
+{% endmacro %}

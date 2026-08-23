@@ -27,7 +27,7 @@
     <ul class="movie-list">
       {% for movie in movies %}
         <li>
-          {{ movie['title'] }}
+          <a href="{{ url_for('movie', movie_id=movie['id']) }}">{{ movie['title'] }}</a>
           &mdash;
           <a href="{{ url_for('create_review', movie_id=movie['id']) }}">Write a review</a>
         </li>

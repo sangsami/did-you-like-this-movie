@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% from '_macros.html' import tristate %}
+{% from '_macros.html' import tristate, reactions with context %}
 
 {% block header %}
   <h1>{% block title %}Explore{% endblock %}</h1>
@@ -20,7 +20,9 @@
   {% for review in reviews %}
     <article class="card">
 
-      <h2>{{ review['title'] }}</h2>
+      <h2>
+        <a href="{{ url_for('movie', movie_id=review['movie_id']) }}">{{ review['title'] }}</a>
+      </h2>
       <p>by {{ review['username'] }}</p>
 
       <div class="meta">
@@ -37,24 +39,7 @@
 
       <div class="actions">
 
-        {% if review['author_id'] == current_user_id %}
-          <button disabled>Like ({{ review['likes_count'] }})</button>
-          <button disabled>Dislike ({{ review['dislikes_count'] }})</button>
-        {% else %}
-          <form method="post" action="{{ url_for('like', review_id=review['id']) }}">
-            <input type="hidden" name="csrf_token" value="{{ session['csrf_token'] }}">
-            <button type="submit" class="{{ 'active' if reactions_map.get(review['id']) == 1 else '' }}">
-              Like ({{ review['likes_count'] }})
-            </button>
-          </form>
-
-          <form method="post" action="{{ url_for('dislike', review_id=review['id']) }}">
-            <input type="hidden" name="csrf_token" value="{{ session['csrf_token'] }}">
-            <button type="submit" class="{{ 'active' if reactions_map.get(review['id']) == -1 else '' }}">
-              Dislike ({{ review['dislikes_count'] }})
-            </button>
-          </form>
-        {% endif %}
+        {{ reactions(review, reactions_map, current_user_id) }}
 
       </div>
 

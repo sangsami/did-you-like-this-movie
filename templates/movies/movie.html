@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% from '_macros.html' import tristate, reactions with context %}
+
+{% block header %}
+  <h1>{{ movie['title'] }}</h1>
+{% endblock %}
+
+{% block content %}
+
+  {% if movie_genres %}
+    <p class="genres">Genres: {{ movie_genres | map(attribute='name') | join(', ') }}</p>
+  {% endif %}
+
+  <div class="stats">
+    <span><strong>{{ stats.total }}</strong> reviews</span>
+    <span><strong>{{ stats.liked }}</strong> liked</span>
+    <span><strong>{{ stats.unliked }}</strong> not liked</span>
+    <span><strong>{{ stats.no_answer }}</strong> no answer</span>
+    <span><strong>{{ stats.recommended }}</strong> recommend</span>
+  </div>
+
+  {% if stats.liked_percent is not none %}
+    <p class="score">
+      <strong>{{ stats.liked_percent }}%</strong> of people who answered liked this movie.
+    </p>
+  {% endif %}
+
+  <div class="actions">
+    {% if own_review %}
+      <a href="{{ url_for('update', review_id=own_review['id']) }}">Edit your review</a>
+    {% else %}
+      <a href="{{ url_for('create_review', movie_id=movie['id']) }}">Write a review</a>
+    {% endif %}
+  </div>
+
+  <h2>Reviews</h2>
+
+  {% for review in reviews %}
+    <article class="card">
+
+      <p>by {{ review['username'] }}</p>
+
+      <div class="meta">
+        {{ tristate('Liked', review.liked) }}
+        {{ tristate('Recommend', review.recommend) }}
+      </div>
+
+      <p class="review-body">{{ review['body'] }}</p>
+
+      <div class="actions">
+        {{ reactions(review, reactions_map, current_user_id) }}
+      </div>
+
+    </article>
+  {% else %}
+    <p>No reviews for this movie yet.</p>
+  {% endfor %}
+
+  {% if total_pages > 1 %}
+    <div class="pagination">
+      {% if page > 1 %}
+        <a href="{{ url_for('movie', movie_id=movie['id'], page=page-1) }}">&laquo; Previous</a>
+      {% endif %}
+      <span>Page {{ page }} / {{ total_pages }}</span>
+      {% if page < total_pages %}
+        <a href="{{ url_for('movie', movie_id=movie['id'], page=page+1) }}">Next &raquo;</a>
+      {% endif %}
+    </div>
+  {% endif %}
+
+{% endblock %}

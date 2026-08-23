@@ -268,3 +268,33 @@ button.active {
 .movie-list li:last-child {
   border-bottom: none;
 }
+
+.stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin: 12px 0;
+  padding: 10px 14px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: #f9f9f9;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.stats strong {
+  color: #222;
+}
+
+.score {
+  margin: 8px 0;
+}
+
+article.card h2 a {
+  color: #222;
+  text-decoration: none;
+}
+
+article.card h2 a:hover {
+  text-decoration: underline;
+}

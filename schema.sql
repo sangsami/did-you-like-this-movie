@@ -55,6 +55,7 @@ CREATE TABLE review_reactions (
 );
 
 CREATE INDEX idx_reviews_author_created ON reviews (author_id, created DESC);
+CREATE INDEX idx_reviews_movie_created ON reviews (movie_id, created DESC);
 CREATE INDEX idx_reactions_review ON review_reactions (review_id);
 
 INSERT INTO genres (name) VALUES

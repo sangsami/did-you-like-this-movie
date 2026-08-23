@@ -31,7 +31,9 @@
   {% for review in reviews %}
     <article class="card">
 
-      <h2>{{ review['title'] }}</h2>
+      <h2>
+        <a href="{{ url_for('movie', movie_id=review['movie_id']) }}">{{ review['title'] }}</a>
+      </h2>
 
       <div class="meta">
         {{ tristate('Liked', review.liked) }}

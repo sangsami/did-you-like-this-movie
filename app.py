@@ -256,6 +256,37 @@ def add():
     return render_template('movies/add.html', all_genres=all_genres)
 
 
+@app.route('/movie/<int:movie_id>')
+@app.route('/movie/<int:movie_id>/<int:page>')
+@login_required
+def movie(movie_id, page=1):
+    """Movie page. Shows review statistics and every review for one movie."""
+    found_movie = movies.get_movie_by_id(movie_id)
+    if found_movie is None:
+        abort(404, 'Movie not found.')
+
+    stats = movies.get_movie_stats(movie_id)
+    total_pages = max(1, math.ceil(stats['total'] / movies.PER_PAGE))
+
+    if page < 1:
+        return redirect(url_for('movie', movie_id=movie_id, page=1))
+    if page > total_pages:
+        return redirect(url_for('movie', movie_id=movie_id, page=total_pages))
+
+    return render_template(
+        'movies/movie.html',
+        movie=found_movie,
+        stats=stats,
+        movie_genres=movies.get_movie_genres(movie_id),
+        reviews=movies.get_reviews_by_movie(movie_id, page=page),
+        own_review=movies.get_review_by_movie(g.user['id'], movie_id),
+        reactions_map=movies.get_user_reactions(g.user['id']),
+        current_user_id=g.user['id'],
+        page=page,
+        total_pages=total_pages
+    )
+
+
 @app.route('/create/<int:movie_id>', methods=('GET', 'POST'))
 @login_required
 def create_review(movie_id):
