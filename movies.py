@@ -1,5 +1,7 @@
 """Movies database queries."""
 
+import sqlite3
+
 import db
 from db import get_db
 
@@ -188,12 +190,45 @@ def search_movies(q):
     )
 
 
-def insert_movie(title):
-    """Insert a new movie and return its id."""
-    return db.execute(
-        'INSERT INTO movies (title) VALUES (?)',
-        (title,)
+def validate_genre_ids(genre_ids):
+    """Turn submitted genre values into ints. Returns None if any value is no match, so the caller can reject the form."""
+    try:
+        ids = [int(genre_id) for genre_id in genre_ids]
+    except (TypeError, ValueError):
+        return None
+
+    if not ids:
+        return []
+
+    placeholders = ','.join('?' * len(ids))
+    rows = db.query(
+        f'SELECT id FROM genres WHERE id IN ({placeholders})',
+        tuple(ids)
     )
+
+    if {row['id'] for row in rows} != set(ids):
+        return None
+
+    return ids
+
+
+def create_movie(title, genre_ids):
+    """Insert a movie and its genres in one transaction, return the movie id."""
+    con = get_db()
+    try:
+        cursor = con.execute('INSERT INTO movies (title) VALUES (?)', (title,))
+        movie_id = cursor.lastrowid
+        if genre_ids:
+            con.executemany(
+                'INSERT INTO movie_genres (movie_id, genre_id) VALUES (?, ?)',
+                [(movie_id, genre_id) for genre_id in genre_ids]
+            )
+    except sqlite3.Error:
+        con.rollback()
+        raise
+
+    con.commit()
+    return movie_id
 
 
 def get_movie_by_title(title):
@@ -313,13 +348,3 @@ def get_genres_for_movies(movie_ids):
     return result
 
 
-def set_movie_genres(movie_id, genre_ids):
-    """SET genres for movie ID."""
-    con = get_db()
-    con.execute('DELETE FROM movie_genres WHERE movie_id = ?', (movie_id,))
-    if genre_ids:
-        con.executemany(
-            'INSERT INTO movie_genres (movie_id, genre_id) VALUES (?, ?)',
-            [(movie_id, int(gid)) for gid in genre_ids]
-        )
-    con.commit()

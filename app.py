@@ -250,13 +250,17 @@ def add():
             flash('Title is required.', 'error')
             return render_template('movies/add.html', title=title, all_genres=all_genres)
 
+        genre_ids = movies.validate_genre_ids(request.form.getlist('genres'))
+        if genre_ids is None:
+            flash('Invalid genre selection.', 'error')
+            return render_template('movies/add.html', title=title, all_genres=all_genres)
+
         existing = movies.get_movie_by_title(title)
         if existing:
             flash('Movie already exists, opening review form for that title.', 'info')
             return redirect(url_for('create_review', movie_id=existing['id']))
 
-        movie_id = movies.insert_movie(title)
-        movies.set_movie_genres(movie_id, request.form.getlist('genres'))
+        movie_id = movies.create_movie(title, genre_ids)
         flash('Movie added successfully.')
         return redirect(url_for('create_review', movie_id=movie_id))
 
