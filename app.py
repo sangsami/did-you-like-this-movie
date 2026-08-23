@@ -246,6 +246,10 @@ def add():
             flash("Title is required.", "error")
             return render_template("movies/add.html", title=title, all_genres=all_genres)
 
+        if len(title) > 200:
+            flash("Title must be 200 characters or fewer.", "error")
+            return render_template("movies/add.html", title=title, all_genres=all_genres)
+
         genre_ids = movies.validate_genre_ids(request.form.getlist("genres"))
         if genre_ids is None:
             flash("Invalid genre selection.", "error")

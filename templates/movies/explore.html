@@ -8,7 +8,8 @@
 {% block content %}
 
   <form method="get" action="{{ url_for('explore') }}" class="search-form">
-    <input type="text" name="q" value="{{ q }}" maxlength="200" placeholder="Search movies...">
+    <label for="q">Search movies</label>
+    <input type="text" name="q" id="q" value="{{ q }}" maxlength="200" placeholder="e.g. Inception">
     <input type="hidden" name="sort" value="{{ sort }}">
     <button type="submit">Search</button>
     {% if q %}<a href="{{ url_for('explore', sort=sort) }}">Clear</a>{% endif %}

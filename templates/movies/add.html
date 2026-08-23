@@ -7,7 +7,7 @@
 {% block content %}
   <form method="post">
     <label for="title">Title</label>
-    <input id="title" name="title" value="{{ title or '' }}" required>
+    <input type="text" id="title" name="title" value="{{ title or '' }}" maxlength="200" required>
 
     <fieldset>
       <legend>Genres (optional)</legend>

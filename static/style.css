@@ -221,6 +221,11 @@ button.active {
   align-items: center;
 }
 
+.search-form label {
+  margin: 0;
+  white-space: nowrap;
+}
+
 .search-form input[type="text"] {
   flex: 1;
   width: auto;
