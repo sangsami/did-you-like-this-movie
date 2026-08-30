@@ -5,7 +5,6 @@ import math
 import os
 import secrets
 import sqlite3
-import time
 
 from flask import Flask, flash, g, redirect, render_template, request, session, url_for
 from werkzeug.exceptions import HTTPException, abort
@@ -20,7 +19,6 @@ app = Flask(__name__)
 app.config.from_mapping(
     SECRET_KEY=os.environ.get("SECRET_KEY", "dev"),
     DATABASE=os.path.join(app.instance_path, "app.sqlite"),
-    REQUEST_TIMING=os.environ.get("REQUEST_TIMING") == "1",
 )
 app.config.from_pyfile("config.py", silent=True)
 
@@ -83,28 +81,6 @@ def ensure_csrf_token():
     """Create CSRF token if doesn't exist."""
     if "csrf_token" not in session:
         session["csrf_token"] = secrets.token_hex(16)
-
-
-def timing_enabled():
-    """Check if in debug mode or request timing flag is on."""
-    return app.debug or app.config["REQUEST_TIMING"]
-
-
-@app.before_request
-def start_request_timer():
-    """Start the request timer, when timing is enabled."""
-    if timing_enabled():
-        g.start_time = time.perf_counter()
-
-
-@app.after_request
-def log_request_time(response):
-    """Log how long the request took, when timing is enabled."""
-    start_time = g.pop("start_time", None)
-    if start_time is not None:
-        elapsed = time.perf_counter() - start_time
-        app.logger.info("%s %s %.3f s", request.method, request.path, elapsed)
-    return response
 
 
 @app.before_request
