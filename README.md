@@ -51,3 +51,7 @@ SECRET_KEY=your-secret-key flask run
 1. Open `http://localhost:5000` in your browser.
 2. Register a new account at `/auth/register`.
 3. Start adding reviews with **New Review**.
+
+## Suuren tietomäärän käsittely
+
+[linkk raporttiin](https://github.com/sangsami/did-you-like-this-movie/blob/main/performance-report.md)
