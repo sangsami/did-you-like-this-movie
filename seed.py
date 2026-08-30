@@ -10,6 +10,7 @@ db.execute("PRAGMA foreign_keys = OFF")
 
 db.execute("DELETE FROM review_reactions")
 db.execute("DELETE FROM reviews")
+db.execute("DELETE FROM movie_genres")
 db.execute("DELETE FROM movies")
 db.execute("DELETE FROM users")
 
